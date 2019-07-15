@@ -6,7 +6,7 @@ You'll find various dashboards and whitepapers that I've created for customers h
 
 ## Dashboards
 
-* [Extended Search Reporting](). This dashboard looks at Search load in Splunk with a different lens than Monitoring Console. Included are 
+* [Extended Search Reporting](https://github.com/dpaper-splunk/public/blob/master/dashboards/extended_search_reporting.xml). This dashboard looks at Search load in Splunk with a different lens than Monitoring Console. Included are 
 
   * Two takes on a search efficiency metric
   * Searches by frequency vs duration (easily find the search running every 5 mins that looks back 1 week)
