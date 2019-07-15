@@ -6,7 +6,7 @@ You'll find various dashboards and whitepapers that I've created for customers h
 
 ## Dashboards
 
-* [Extended Search Reporting](https://github.com/dpaper-splunk/public/blob/master/dashboards/extended_search_reporting.xml). This dashboard looks at Search load in Splunk with a different lens than Monitoring Console. Included are 
+* [Extended Search Reporting](https://github.com/dpaper-splunk/public/blob/master/dashboards/extended_search_reporting.xml). This dashboard looks at Search load in Splunk with a different lens than Monitoring Console. Works for both Splunk Cloud and Splunk on premise. Included are 
 
   * Two takes on a search efficiency metric
   * Searches by frequency vs duration (easily find the search running every 5 mins that looks back 1 week)
@@ -15,6 +15,14 @@ You'll find various dashboards and whitepapers that I've created for customers h
   * Visualization of when searches are scheduled across the entire SH, per app and per user
   * Searches grouped by cron schedule type, sorted by name (easy to find searches that do almost the same thing by name and are ripe for consolidation)
   * Heavy weight dashboards that cause role search concurrency or disk and server-wide limits to be hit when loading
+  
+* [Metrics Related to Ingestion Blockage](https://github.com/dpaper-splunk/public/blob/master/dashboards/metrics_related_to_ingestion_blockage.xml). This dashboard looks at data ingestion metrics including forwarder and indexer tiers. Designed to work with Splunk Cloud, but can be easily adapted to on prem. Included are
+
+ * Indexer ingestion and replication queue filling indicators including data port listener availability
+ * Peer replication traffic
+ * Mpool buffer filling
+ * Forwarders dropping events due to being unable to forward
+ * Hot bucket counts
 
 ## Whitepapers
 
