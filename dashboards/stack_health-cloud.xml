@@ -1,0 +1,420 @@
+<dashboard>
+  <!-- Cloud -->
+  <label>Stack Health of Data Onboarding, v1.7.0 beta (cloud)</label>
+  <search>
+    <query>| makeresults
+ | eval now=strftime(relative_time(now(),"-0s"),"%+")
+ | table now</query>
+    <sampleRatio>1</sampleRatio>
+    <preview>
+      <set token="tok_now">$result.now$</set>
+    </preview>
+  </search>
+  <row>
+    <panel>
+      <html>
+        <h3>Index Counts and Error Trending</h3>
+      <p/>
+      Description: Count of active and configured (active + empty) indexes. Active indexes should be kept to less than <b>400</b> Additional info is on <a href="https://docs.splunk.com/Documentation/SplunkCloud/latest/Service/SplunkCloudservice#Splunk_Cloud_service_limits_and_constraints">https://docs.splunk.com/Documentation/SplunkCloud/latest/Service/SplunkCloudservice#Splunk_Cloud_service_limits_and_constraints</a>. Hourly error message counts and trending to assist with identifying behavior due to spikes in errors.
+      <p/>
+      Actions to take: Index consolidation where it makes sense, like combining all indexes for an Application into a single index and use meta tags to segregate out events in search. Aggregation, Line Breaking and Time Stamp errors should be kept as low as possible, and can be improved by focusing on data onboarding for each source and separating out disparate sources into their own sourcetype. Example: IIS logs, .NET logs and SQL errors from 3 different sources should not all be in the same sourcetype.
+      <p/>
+      Time frame: Trending over past 2 days, absolute values are errors in the past 1 hour, with the % value change over previous 2 hours.
+      <p/>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>$tok_now$</title>
+      <single>
+        <search>
+          <query>|rest /services/data/indexes splunk_server=idx*.splunkcloud.com | search totalEventCount!=0 | stats dc(title)</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="link.visible">1</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[500,550,600,650]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="underLabel">Active Indexes</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+        <option name="useThousandSeparators">1</option>
+      </single>
+      <single>
+        <search>
+          <query>|rest /services/data/indexes splunk_server=idx*.splunkcloud.com | stats dc(title)</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="link.visible">1</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x65a637","0x6db7c6","0xf7bc38","0xf58f39","0xd93f3c"]</option>
+        <option name="rangeValues">[500,550,600,650]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="underLabel">Total Configured Indexes</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">1</option>
+        <option name="useThousandSeparators">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Aggregation Errors - $tok_now$</title>
+        <search>
+          <query>index=_internal sourcetype=splunkd source=*splunkd.log component=AggregatorMiningProcessor (log_level=WARN OR log_level=ERROR)
+            | rex field=message "Context: source::(?&lt;context_source&gt;[^\|]*?)\|host::(?&lt;context_host&gt;[^\|]*?)\|(?&lt;context_sourcetype&gt;[^\|]*?)\|"
+            | eval data_source = if(isnull(data_source) AND isnotnull(context_source), context_source, data_source)
+            | eval data_sourcetype = if(isnull(data_sourcetype) AND isnotnull(context_sourcetype), context_sourcetype, data_sourcetype)
+            | timechart count(eval(component=="AggregatorMiningProcessor")) AS "Aggregation Issues" span=1h partial=false</query>
+          <earliest>-2d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="drilldown">none</option>
+        <option name="trendColorInterpretation">inverse</option>
+        <option name="trendDisplayMode">percent</option>
+        <option name="trendInterval">-1h</option>
+        <option name="useColors">1</option>
+        <option name="link.visible">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Line Breaking Errors - $tok_now$</title>
+        <search>
+          <query>index=_internal sourcetype=splunkd source=*splunkd.log component=LineBreakingProcessor (log_level=WARN OR log_level=ERROR)
+            | rex field=message "Context: source::(?&lt;context_source&gt;[^\|]*?)\|host::(?&lt;context_host&gt;[^\|]*?)\|(?&lt;context_sourcetype&gt;[^\|]*?)\|"
+            | eval data_source = if(isnull(data_source) AND isnotnull(context_source), context_source, data_source)
+            | eval data_sourcetype = if(isnull(data_sourcetype) AND isnotnull(context_sourcetype), context_sourcetype, data_sourcetype)
+            | timechart count(eval(component=="LineBreakingProcessor")) AS "Line Breaking Issues" span=1h partial=false</query>
+          <earliest>-2d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="drilldown">none</option>
+        <option name="trendColorInterpretation">inverse</option>
+        <option name="trendDisplayMode">percent</option>
+        <option name="trendInterval">-1h</option>
+        <option name="useColors">1</option>
+        <option name="link.visible">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Timestamp Parsing Errors - $tok_now$</title>
+        <search>
+          <query>index=_internal sourcetype=splunkd source=*splunkd.log component=DateParserVerbose (log_level=WARN OR log_level=ERROR)
+            | rex field=message "Context: source::(?&lt;context_source&gt;[^\|]*?)\|host::(?&lt;context_host&gt;[^\|]*?)\|(?&lt;context_sourcetype&gt;[^\|]*?)\|"
+            | eval data_source = if(isnull(data_source) AND isnotnull(context_source), context_source, data_source)
+            | eval data_sourcetype = if(isnull(data_sourcetype) AND isnotnull(context_sourcetype), context_sourcetype, data_sourcetype)
+            | timechart count(eval(component=="DateParserVerbose")) AS "Timestamp Parsing Issues" span=1h partial=false</query>
+          <earliest>-2d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorBy">trend</option>
+        <option name="drilldown">none</option>
+        <option name="trendColorInterpretation">inverse</option>
+        <option name="trendDisplayMode">percent</option>
+        <option name="trendInterval">-1h</option>
+        <option name="useColors">1</option>
+        <option name="link.visible">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Quality of Incoming Data</h3>
+        <p/>
+        Description: This panel helps you assess the quality of your incoming data by revealing issues that occur when the data is being indexed. These issues appear as warnings and errors in your splunkd.log. Line Breaking and Time Stamp issues cause quarantine hot buckets to be created, placing unecessary load on indexers. Table is clickable which will take you to a new view with deep drilldowns.
+        <p/>
+        Action to take: Focus on identifying the necessary index time configs in props and transforms for each source and sourcetype. At a minimum: TIME_PREFIX, MAX_TIMESTAMP_LOOKAHEAD, TIME_FORMAT, SHOULD_LINEMERGE, LINE_BREAKER, TRUNCATE. Break sources with unique formats into individual sourcetypes as part of the props and transforms configurations. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Data/Resolvedataqualityissues">http://docs.splunk.com/Documentation/Splunk/latest/Data/Resolvedataqualityissues</a>.
+        <p/>
+        Time frame: Data below is for the past 2 days.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Quality of Incoming Data - $tok_now$</title>
+      <table>
+        <search>
+          <query>index=_internal sourcetype=splunkd source=*splunkd.log
+            (component=AggregatorMiningProcessor OR component=LineBreakingProcessor OR component=DateParserVerbose)
+            (log_level=WARN OR log_level=ERROR)
+            | rex field=message "Context: source::(?&lt;context_source&gt;[^\|]*?)\|host::(?&lt;context_host&gt;[^\|]*?)\|(?&lt;context_sourcetype&gt;[^\|]*?)\|"
+            | eval data_source = if(isnull(data_source) AND isnotnull(context_source), context_source, data_source)
+            | eval data_sourcetype = if(isnull(data_sourcetype) AND isnotnull(context_sourcetype), context_sourcetype, data_sourcetype)
+            | stats
+              count(eval(component=="LineBreakingProcessor" OR component=="DateParserVerbose" OR component=="AggregatorMiningProcessor")) as total_issues
+              dc(data_source) AS "Source Count"
+              count(eval(component=="LineBreakingProcessor")) AS "Line Breaking Issues"
+              count(eval(component=="DateParserVerbose")) AS "Timestamp Parsing Issues"
+              count(eval(component=="AggregatorMiningProcessor")) AS "Aggregation Issues" by data_sourcetype
+            | sort - total_issues
+            | rename
+              data_sourcetype as Sourcetype
+              total_issues as "Total Issues"</query>
+          <earliest>-2d@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">heatmap</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown target="blank">
+          <link>
+            <![CDATA[
+          /app/splunk_instance_monitoring/data_quality?form.time.earliest=-60m%40m&form.time.latest=now
+         ]]>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Forwarder Restarts</h3>
+      <p/>
+      Description: Forwarders restarting frequently indicates a problem with the forwarder process or the host that it is running on. A forwarder that is constantly bouncing will not be able to process data properly and may cause data to be missing in Splunk.
+      <p/>
+      Action to take: Investigate why forwarder processes are restarting so frequently. Can also be a sign of a host being cloned and now having the GUID and/or hostname being reset at time of cloning. Make sure "./splunk clone-prep-clear-config" has been run if deploying VMs via cloning.
+      <p/>
+      Also make sure that the Splunk forwarder version is compatible with the host OS version. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements">http://docs.splunk.com/Documentation/Splunk/latest/Installation/Systemrequirements</a>.
+      <p/>
+      Time frame: Data below is for the past 2 days.
+    </html>
+    </panel>
+    <panel>
+      <html>
+        <h3>Event Count per Index</h3>
+        <p/>
+        Description: Count of how many events are in each index, earliest and latest data contained in that index.
+        <p/>
+        Action to take: Indexes with small event counts that aren't summary indexes may be ripe for consolidation.
+        <p/>
+        Time frame: Data below is for the past 24 hours.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Forwarder Restarts - $tok_now$</title>
+      <table>
+        <search>
+          <query>index=_internal sourcetype=splunkd source=*splunkd.log "Splunkd starting" component=loader | top host limit=100 | where count&gt;4 | fields - percent | rename count AS Count, host AS Host</query>
+          <earliest>-2d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Event Count per Index - $tok_now$</title>
+      <table>
+        <search>
+          <query>| rest /services/data/indexes splunk_server=idx*
+| search totalEventCount!=0
+| rex field=minTime mode=sed "s/(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})\+\d{4}/\1 \2/"
+| rex field=maxTime mode=sed "s/(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})\+\d{4}/\1 \2/"
+| stats sum(totalEventCount) AS EC, min(minTime) as "Min Time", max(maxTime) as "Max Time" by title
+| rename title AS "Index"
+| join type=outer splunk_server
+    [| rest /services/cluster/config/config splunk_server=idx*
+    | stats max(search_factor) AS SF]
+| eval EC=round(EC/SF,0)
+| sort EC
+| rename EC as "Event Count"
+| table Index "Event Count" "Min Time" "Max Time"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Search Peer Transitions</h3>
+      <p/>
+      Description: Search peer (indexer) transitions happen when the Cluster Master can no longer reach a peer for a heartbeat response. This happens normally during a rolling restart. If it happens and there is no rolling restart, this is a sign of search peers in duress. If "Pending -&gt; Up" and "Up -&gt; Pending" happen without associated Restarting changes, this is an indicator that splunk received a large volume of data with timestamp or linebreaking issues.
+      <p/>
+      This view is more of a holistic summary view of all of the items noted above as they relate to bucket creation, data on boarding and overall number of indexes that Splunk has to manage hot buckets for.
+      <p/>
+      This graph may be empty if the cluster is healthy and is has not had a rolling restart in the past 15 days. The emptier this graph is, the better.
+      <p/>
+      Action to take: Focus efforts on data onboarding cleanup as noted in panels above.
+      <p/>
+      Time frame: Data below is for the past 15 days.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Search Peer Transitions - $tok_now$</title>
+      <chart>
+        <search>
+          <query>index=_internal source=*splunkd.log sourcetype=splunkd host=c0m1* component=CMPeer peer transitioning NOT bid | eval transition = from." -&gt; ".to | timechart count by transition</query>
+          <earliest>-15d@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Hot Bucket Rolls</h3>
+      <p/>
+      Description: This view depicts how many buckets rolled every 15 minutes, and which indexes they occurred in. There may be large numbers of bucket rolls at the same time there are search peer transitions above if there is a rolling restart underway. A large number (hundreds or thousands) of bucket rolls with no rolling restart happening is an indicator of large amounts of data arriving where Splunk determines the date stamp is way out of the norm.
+      <p/>
+      This graph may be mostly empty if the cluster is healthy and is has not had a rolling restart in the past day. Occassional hot bucket rolls are normal.
+      <p/>
+      Action to take: Focus efforts on proper time stamp recognition during data onboarding cleanup as noted in panels above.
+      <p/>
+      Time frame: Data below is for the past 24 hours.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Hot bucket rolls</title>
+      <chart>
+        <search>
+          <query>index=_internal source=*splunkd.log host=idx*.splunkcloud.com sourcetype=splunkd component=HotBucketRoller | rename idx AS Index | timechart span=15m count by Index limit=10 | rename VALUE_* AS "splunk_*"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Index Bucket Information</h3>
+        <p/>
+        Description: This panel helps you assess the hot bucket rolling frequency and average size of the buckets being rolled. Very short (less than 1 minute) or very long (months/years) bucket spans are indicative of quarantine buckets.
+        <p/>
+        Action to take: Healthly bucket sizes should be in GB, not MB or KB. Focus on cleaning up data going into indexes that frequently roll tiny buckets with abnormal timespans. Consider ignoring data older than what is absolutely needed. If no data should be received older than 6 months ago, configure Splunk to ignore it.
+        <p/>
+        Time frame: Data below is for the past 7 days.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Index Bucket Info - $tok_now$</title>
+      <table>
+        <search>
+          <query>index=_internal source=*splunkd.log sourcetype=splunkd component=HotBucketRoller idx!=_*
+ | rex field=to "db_(?&lt;latest_time&gt;\d{10})_(?&lt;earliest_time&gt;\d{10})"
+ | eval latest_btime=strftime(latest_time,"%Y-%m-%d %H:%M:%S")
+ | eval earliest_btime=strftime(earliest_time,"%Y-%m-%d %H:%M:%S")
+ | eval date_span=tostring((latest_time - earliest_time),"duration")
+ | eval bucket_size=case(size&gt;=(1024*1024*1024*1024),round(size/(1024*1024*1024*1024),0)."TB", size&gt;=(1024*1024*1024),round(size/(1024*1024*1024),0)."GB", size&gt;=(1024*1024),round(size/(1024*1024),0)."MB", size&gt;=1024,round(size/1024,0)."KB", 1=1,size."B")
+ | eventstats avg(size) as asize by idx
+ | eval asize=tonumber(round(asize,0))
+ | eval avgsize=case(asize&gt;=(1024*1024*1024*1024),round(asize/(1024*1024*1024*1024),0)."TB", asize&gt;=(1024*1024*1024),round(asize/(1024*1024*1024),0)."GB", asize&gt;=(1024*1024),round(asize/(1024*1024),0)."MB", asize&gt;=1024,round(asize/1024,0)."KB", 1=1,size."B")
+ | stats values(to) as to, values(earliest_btime) as earliest_btime, values(latest_btime) as latest_btime, values(date_span) as date_span, values(bucket_size) as bucket_size, values(avgsize) as "Avg Bucket Size" by idx
+ | sort + earliest_btime
+ | rename idx AS Index, to AS "Bucket Name", earliest_btime AS "Earliest Event", latest_btime AS "Latest Event", date_span AS "Time Span", bucket_size AS "Bucket Size"
+ | fields - "Bucket Name"</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

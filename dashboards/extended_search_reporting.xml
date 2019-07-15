@@ -1,0 +1,638 @@
+<form>
+  <label>Extended Search Reporting, v1.5.1</label>
+  <!-- Author: David Paper, dpaper@splunk.com -->
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+  <h3>Search Efficiency Ratings</h3>
+  <p/>
+  Description: The efficiency panel is a ranking of searches based on how efficient the searches are. The value represents a function of how often the search runs and how long it takes to run. A search running often and takes a long time will have a low efficiency value. Searches that run in less time raise efficiency value.
+  <p/>
+  Higher efficiency values, relative to each other, are better. Anything below 10 should be considered for improvement in SPL, time range, or change in frequency of scheduling.
+  <p/>
+  Actions to take: Review how often the search is scheduled to run, and if it is a frequently scheduled search, optimize SPL to complete quicker. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches">http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Efficiency Search</title>
+      <input type="checkbox" token="Exclusions" searchWhenChanged="true">
+        <choice value="savedsearch_name!=_ACCELERATE_*">Exclude Accelerations</choice>
+        <choice value="user!=admin">Searches not owned by admin</choice>
+        <choice value="user!=nobody">Searches not owned by nobody</choice>
+        <initialValue>user=*</initialValue>
+        <!-- The final value will be surrounded by prefix and suffix with delimiter between then -->
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <delimiter> AND </delimiter>
+      </input>
+      <table>
+        <search>
+          <query>index=_internal sourcetype=scheduler source=*scheduler.log status=success $Exclusions$
+| stats avg(run_time) as average_runtime_in_sec count(savedsearch_name) as weekly_count sum(run_time) as total_runtime_sec by savedsearch_name user app host
+| eval Ran_every_x_Minutes=60/(weekly_count/168)
+| eval average_runtime_in_minutes=average_runtime_in_sec/60
+| eval efficiency=((60/(weekly_count/168))/(average_runtime_in_sec/60))
+| sort efficiency
+| rename savedsearch_name AS "Saved Search Name", user AS "User", efficiency AS "Efficiency", app AS "App", host AS "Host", average_runtime_in_sec AS "Avg Runtime Secs", weekly_count AS "Weekly Count", total_runtime_sec AS "Total Runtime Secs", Ran_every_x_Minutes AS "Ran Every X Mins", average_runtime_in_minutes AS "Avg Runtime In Mins"
+| table "Saved Search Name","User", "Efficiency", "App", "Host", "Avg Runtime Secs", "Weekly Count", "Total Runtime Secs", "Ran Every X Mins", "Avg Runtime In Mins"</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Events Scanned vs Returned</h3>
+  <p/>
+  Description: This view provides insight into which searches have a very low count of results returned versus count of results scanned. This is expressed as a  ratio called lispy_efficiency. The closer to 1.0 the lispy_efficiency ratio is, the better the search is. A low ratio indicates Splunk is reading a large number of events but ultimately returning very few to the user.
+  <p/>
+  If savedsearch_name is blank, its an adhoc search.
+  <p/>
+  Actions to take: Review the values before the first | to include as many specific search terms as possible. Pay attention to searches using wildcards, small numbers, and filtering with NOT – especially for fields. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches">http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches</a> and a deep dive on this topic on <a href="https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf">https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Events Scanned vs Returned</title>
+      <input type="radio" searchWhenChanged="true" token="include_search_string">
+        <label>Include Search SPL</label>
+        <choice value="savedsearch_name _time">No</choice>
+        <choice value="savedsearch_name search _time">Yes</choice>
+        <default>savedsearch_name _time</default>
+        <!--
+        <change>
+          <set token="include_search_string">$label$</set>
+        </change>
+        -->
+      </input>
+      <table>
+        <search>
+          <query>index=_audit search_id TERM(action=search) (info=granted OR info=completed) 
+| stats first(_time) as _time first(total_run_time) as total_run_time first(event_count) as event_count first(scan_count) as
+   scan_count first(user) as user first(savedsearch_name) as savedsearch_name first(search) as search by search_id 
+| eval lispy_efficiency = event_count / scan_count 
+| where lispy_efficiency &lt; 0.5 AND total_run_time &gt; 5 AND scan_count &gt; 100
+| sort - total_run_time 
+| table total_run_time event_count scan_count lispy_efficiency user $include_search_string$ search_id</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Frequency and Duration Comparison</h3>
+  <p/>
+  Description: Often a search is scheduled to run frequently with a very long duration. While it makes sense for a search run every 5 minutes to look back 10 minutes (-11m@m to -1m@m, delayed a minute to allow straggler events to be indexed and caught by the search), it probably doesn't make sense for a search running every 5 minutes to look back 4 or 24 hours. Likewise, a search that run once an hour probably doesn't need to look back at the last 24 hours or 7 days. These searches end up being resource hogs due to the frequency they run. Any search with a ratio higher than 20:1 (default) of frequency to duration is shown. Use the dropdown to alter the ratio to display.
+  <p/>
+  There is no right answer for what an acceptable ratio is - some searches may need a longer look back than others. The closer to 1:1 the better. A search that runs every minute shouldn't need to look back more than 2 or 3 minutes. Note that there are some edge case cron schedules that don't get parsed correctly.
+  <p/>
+  Actions to take: Review how often the search is scheduled to run and the duration it's running against. Does it make sense? Ensure that searches with high ratios that need to maintain the ratio are as efficient as possible. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches">http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches</a>.
+  <p/>
+  Time frame: Trending over the past 4 hours.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Frequency and Duration Comparison</title>
+      <input type="dropdown" token="ratio" searchWhenChanged="true">
+        <label>Select ratio threshold</label>
+        <choice value="3">3:1</choice>
+        <choice value="10">10:1</choice>
+        <choice value="20">20:1</choice>
+        <choice value="30">30:1</choice>
+        <choice value="50">50:1</choice>
+        <default>20</default>
+      </input>
+      <table>
+        <search>
+          <query>index=_audit sourcetype=audittrail source=audittrail savedsearch_name!="" TERM(action=search) ( TERM(info=completed) OR ( TERM(info=granted) search_et=* "search='search")) NOT "search_id='rsa_*" 
+| eval timesearched = round((search_lt-search_et),0)
+| fields savedsearch_name, timesearched, user
+| join savedsearch_name 
+    [| rest splunk_server=local "/servicesNS/-/-/saved/searches/" search="is_scheduled=1" search="disabled=0" 
+    | fields title, cron_schedule, eai:acl.app
+    | rename title as savedsearch_name 
+    | eval pieces=split(cron_schedule, " ") 
+    | eval c_min=mvindex(pieces, 0), c_h=mvindex(pieces, 1), c_d=mvindex(pieces, 2), c_mday=mvindex(pieces, 3), c_wday=mvindex(pieces, 4) 
+    | eval c_min_div=if(match(c_min, "/"), replace(c_min, "^.*/(\d+)$", "\1"), null()) 
+    | eval c_mins=if(match(c_min, ","), split(c_min, ","), null()) 
+    | eval c_min_div=if(isnotnull(c_mins), abs(tonumber(mvindex(c_mins, 1)) - tonumber(mvindex(c_mins, 0))), c_min_div) 
+    | eval c_hs=if(match(c_h, ","), split(c_h, ","), null()) 
+    | eval c_h_div=case(match(c_h, "/"), replace(c_h, "^.*/(\d+)$", "\1"), isnotnull(c_hs), abs(tonumber(mvindex(c_hs, 1)) - tonumber(mvindex(c_hs, 0))), 1=1, null()) 
+    | eval c_wdays=if(match(c_wday, ","), split(c_wday, ","), null()) 
+    | eval c_wday_div=case(match(c_wday, "/"), replace(c_wday, "^.*/(\d+)$", "\1"), isnotnull(c_wdays), abs(tonumber(mvindex(c_wdays, 1)) - tonumber(mvindex(c_wdays, 0))), 1=1, null()) 
+    | eval i_m=case(c_d &lt; 29, 86400 * 28, c_d = 31, 86400 * 31, 1=1, null()) 
+    | eval i_h=case(isnotnull(c_h_div), c_h_div * 3600, c_h = "*", null(), match(c_h, "^\d+$"), 86400) 
+    | eval i_min=case(isnotnull(c_min_div), c_min_div * 60, c_min = "*", 60, match(c_min, "^\d+$"), 3600) 
+    | eval i_wk=case(isnotnull(c_wday_div), c_wday_div * 86400, c_wday = "*", null(), match(c_wday, "^\d+$"), 604800) 
+    | eval cron_minimum_freq=case(isnotnull(i_m), i_m, isnotnull(i_wk) AND isnotnull(c_min_div), i_min, isnotnull(i_wk) AND isnull(c_min_div), i_wk, isnotnull(i_h), i_h, 1=1, min(i_min)) 
+    | fields - c_d c_h c_hs c_h_div c_mday c_min c_min_div c_mins c_wday c_wdays c_wday_div pieces i_m i_min i_h i_wk 
+    | fields savedsearch_name cron_minimum_freq cron_schedule eai:acl.app] 
+| eval magic=cron_minimum_freq*$ratio$ 
+| where timesearched&gt;magic
+| eval ratio=round(timesearched/cron_minimum_freq,0) . ":" . 1, timesearched=round(timesearched/60,0), cron_minimum_freq=cron_minimum_freq/60
+| dedup savedsearch_name 
+| table savedsearch_name, eai:acl.app, user, timesearched, cron_minimum_freq, cron_schedule, ratio 
+| rename savedsearch_name AS "Saved Search Name", eai:acl.app AS "App", user AS "User", timesearched AS "Time Searched (Minutes)", cron_minimum_freq as "Minimum Frequency (Minutes)", cron_schedule AS "Cron Schedule", ratio as Ratio</query>
+          <earliest>-4h@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Use The Fields, Luke</h3>
+  <p/>
+  Description: This view identifies which users avail themselves of the 4 fields every event has (index, source, sourcetype, host) in their searches, and if they use them with wildcards. Users who use less than 3 of these in their searches could use some pointers to writing better, more specific searches. Idealy every search will have an index=, source=, sourcetype= and host= defined before the first |.
+  <p/>
+  Actions to take: Review the values before the first | to include as many specific search terms as possible.  Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Quicktipsforoptimization">http://docs.splunk.com/Documentation/Splunk/latest/Search/Quicktipsforoptimization</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Use The Fields, Luke</title>
+      <table>
+        <search>
+          <query>user=* index=_audit action=search sourcetype=audittrail search_id=* user!="splunk-system-user" info=granted  
+| eval search=replace(search,"(search\s)(.*)","\2") 
+| eval savedsearch_name=replace(savedsearch_name,"(search\d+)","dashboard") 
+| eval savedsearch_name=if(savedsearch_name="","adhoc",savedsearch_name) 
+| stats count by user, savedsearch_name, search | rex field=search "host=(?&lt;host&gt;\S+)"  
+| rex field=search "sourcetype=(?&lt;sourcetype&gt;\S+)"  
+| rex field=search "source=(?&lt;source&gt;\S+)"  
+| rex field=search "index=(?&lt;index&gt;[^\s\=]+)" 
+| eval index=trim(index,"\""), host=trim(host,"\"\\'"), sourcetype=trim(sourcetype,"\"") ,source=trim(source,"\"")  
+| stats values(index) as searched_indexes, values(sourcetype) as searched_sourcetypes, values(source) as searched_sources, values(host) as searched_hosts by user
+</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Search Duration</h3>
+  <p/>
+  Description: The duration panels help visualize where search load is coming from. Left panel is a explicit breakdown of number of searches and duration between beginning and end. Right panel is similar, but buckets the searches into groups.
+  <p/>
+  Actions to take: Review how often searches are scheduled to run -- do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports">http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports</a>. For frequently run searches, ensure that they are as fast as possible with each search being as specific as possible before the first pipe, including index sourcetype host or other values whenever possible.
+  <p/>
+  Time frame: Trending over the past 60 minutes.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Duration #1</title>
+      <table>
+        <search>
+          <query>index=_audit info=completed sourcetype=audittrail source=audittrail action=search
+| eval search_span=round(search_lt-search_et)
+| eval search_span=tostring(abs(search_span), "duration")
+| top limit=12 search_span
+| rename count AS "Count", percent AS "Percent", search_span AS "Search Span (clickable)"
+| table "Search Span (clickable)", "Count", "Percent"</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <link target="_blank">search?q=index=_audit info=completed sourcetype=audittrail source=audittrail action=search 
+| eval search_span=round(search_lt-search_et) 
+| eval search_span=tostring(abs(search_span), "duration") 
+| search search_span="$click.value2$" 
+| stats count by savedsearch_name 
+| table savedsearch_name count 
+| rename savedsearch_name AS "Saved search name", count as Count&amp;earliest=-60m@m&amp;latest=now</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Duration #2</title>
+      <table>
+        <search>
+          <query>index=_audit sourcetype=audittrail source=audittrail TERM(action=search) ( TERM(info=completed)  OR ( TERM(info=granted) apiStartTime "search='search")) NOT "search_id='rsa_*"
+| eval u=case( searchmatch("user=splunk-system-user OR user=nobody OR search_id=*scheduler_*"), "Scheduler", searchmatch(("search_id='1*")), "AdHocUser", 1=1, "AdHocSaved")
+| eval search_id=md5(search_id), search_et=if(search_et="N/A", 0, search_et), search_lt=if(search_lt="N/A", exec_time, search_lt), et_diff=case(exec_time&gt;search_et, (exec_time-search_et)/60, 1=1, (search_lt-search_et)/60), searchStrLen=len(search)
+| stats partitions=10 sum(searchStrLen) AS searchStrLen, count, first(et_diff) AS et_diff, first(u) as u, values(search) AS search BY search_id
+| search searchStrLen&gt;0 et_diff=* count&gt;1
+| eval Et_range=case(et_diff&lt;=0, "WTF", et_diff&lt;2, "0_1m", et_diff&lt;6, "1_5m", et_diff&lt;11, "2_10m", et_diff&lt;16, "3_15m", et_diff&lt;=65, "4_60m", et_diff&lt;=4*60+10, "5_4h", et_diff&lt;=24*60+10, "6_24h", et_diff&lt;=7*24*60+10, "7_7d", et_diff&lt;=30*24*60+10, "8_30d", et_diff&lt;=90*24*60+10, "9_90d", 1=1, "10_&gt;90d")
+| chart count by Et_range, u
+| eval Total=AdHocUser + AdHocSaved + Scheduler
+| eventstats sum(AdHocUser) AS uTotal sum(AdHocSaved) AS aTotal, sum(Scheduler) AS sTotal, sum(Total) AS tTotal
+| eval AdHocUserPerc=round((AdHocUser*100)/uTotal,3), AdHocSavedPerc=round((AdHocSaved*100)/aTotal,3), SchedulerPerc=round((Scheduler*100)/sTotal, 3), TotalPerc=round((Total*100)/tTotal, 3)
+| addcoltotals
+| eval Et_range=if(isnull(Et_range), "8_Total", Et_range)
+| fields - aTotal sTotal tTotal, uTotal
+| rex mode=sed field=Et_range "s/\d+_(.*)/\1/g"
+| accum TotalPerc AS TotalPercCumulative
+| eval TotalPercCumulative=if(TotalPercCumulative&lt;101, round(TotalPercCumulative, 1), "")
+| rename Et_range AS "Search Span"</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Search Scheduling Distribution</h3>
+  <p/>
+  Description: The distribution of scheduled searches is a way to visualize the scheduled search load for each minute of the last hour from the Splunk scheduler perspective. This view only encompasses scheduled and enabled searches on the local server.
+  <p/>
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes by default.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Search Scheduling Distribution</title>
+      <input type="time" token="time_range_all" searchWhenChanged="true">
+        <label>Search Scheduling Distribution</label>
+        <default>
+          <earliestTime>-1h@m</earliestTime>
+          <latestTime>now</latestTime>
+        </default>
+      </input>
+      <input type="radio" token="timespan_all" searchWhenChanged="true">
+        <label>Select timechart span</label>
+        <choice value="1m">1 minute</choice>
+        <choice value="5m">5 minutes</choice>
+        <choice value="60m">60 minutes</choice>
+        <default>1m</default>
+      </input>
+      <chart>
+        <search>
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_all.earliest$ latest_time=$time_range_all.latest$ 
+          | table title cron_schedule scheduled_times 
+          | mvexpand scheduled_times 
+          | rename scheduled_times as _time 
+          | timechart span=$timespan_all$ count as "Searches Scheduled"</query>
+          <earliest>$time_range_all.earliest$</earliest>
+          <latest>$time_range_all.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="height">400</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Search Scheduling Distribution by App</h3>
+  <p/>
+  Description: Same as above, but broken down per app and sorted by highest count of scheduled searches over the observed time period. This view only encompasses scheduled and enabled searches on the local server.
+  <p/>
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes by default.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Search Scheduling Distribution By App</title>
+      <input type="time" token="time_range_app" searchWhenChanged="true">
+        <label>Search Scheduling Distribution</label>
+        <default>
+          <earliestTime>-1h@m</earliestTime>
+          <latestTime>now</latestTime>
+        </default>
+      </input>
+      <input type="radio" token="timespan_app" searchWhenChanged="true">
+        <label>Select timechart span</label>
+        <choice value="1m">1 minute</choice>
+        <choice value="5m">5 minutes</choice>
+        <choice value="60m">60 minutes</choice>
+        <default>1m</default>
+      </input>
+      <chart>
+        <search>
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_app.earliest$ latest_time=$time_range_app.latest$
+| table title cron_schedule scheduled_times eai:acl.app 
+| mvexpand scheduled_times 
+| rename scheduled_times as _time 
+| rename eai:acl.app AS app 
+| eventstats count AS total_events by app 
+| sort - total_events 
+| streamstats current=f window=1 last(total_events) as prev_eventcount 
+| fillnull value=0 total_events 
+| eval tempRank=if(total_events=prev_eventcount,0,1) 
+| streamstats sum(tempRank) as Rank 
+| eval Rank=printf("%02d",Rank) 
+| eval app_name=Rank+" - "+app+"("+total_events+")"
+| timechart span=$timespan_app$ count as "Searches Scheduled" by app_name useother=f limit=100</query>
+          <earliest>$time_range_app.earliest$</earliest>
+          <latest>$time_range_app.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">0</option>
+        <option name="trellis.size">small</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Search Scheduling Distribution by User</h3>
+  <p/>
+  Description: Same as above, but broken down per user and sorted by highest count of scheduled searches over the observed time period. This view only encompasses scheduled and enabled searches on the local server.
+  <p/>
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  <p/>
+  Time frame: Trending over the past 60 minutes by default.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Search Scheduling Distribution By User</title>
+      <input type="time" token="time_range_user" searchWhenChanged="true">
+        <label>Search Scheduling Distribution</label>
+        <default>
+          <earliestTime>-1h@m</earliestTime>
+          <latestTime>now</latestTime>
+        </default>
+      </input>
+      <input type="radio" token="timespan_user" searchWhenChanged="true">
+        <label>Select timechart span</label>
+        <choice value="1m">1 minute</choice>
+        <choice value="5m">5 minutes</choice>
+        <choice value="60m">60 minutes</choice>
+        <default>1m</default>
+      </input>
+      <chart>
+        <search>
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_user.earliest$ latest_time=$time_range_user.latest$
+| table title cron_schedule scheduled_times eai:acl.owner 
+| mvexpand scheduled_times 
+| rename scheduled_times as _time 
+| rename eai:acl.owner AS owner 
+| eventstats count AS total_events by owner 
+| sort - total_events 
+| streamstats current=f window=1 last(total_events) as prev_eventcount 
+| fillnull value=0 total_events 
+| eval tempRank=if(total_events=prev_eventcount,0,1) 
+| streamstats sum(tempRank) as Rank 
+| eval Rank=printf("%02d",Rank) 
+| eval owner_name=Rank+" - "+owner+"("+total_events+")" 
+| timechart span=$timespan_user$ count as "Searches Scheduled" by owner_name useother=f limit=100</query>
+          <earliest>$time_range_user.earliest$</earliest>
+          <latest>$time_range_user.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">0</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+  <h3>Scheduled Search Frequency</h3>
+  <p/>
+  Description: Buckets searches into common frequency of scheduling, every 1, 5, 10, 15, 30 or 60 minutes and all remainders. This assists with identifying causes of skipped searches when the SH hits maximum historical search capacity.
+  <p/>
+  Actions to take: Review how often searches are scheduled to run -- do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. For multiple searches that have to run every 5 minutes, spread them out from */5 (or "every 5 minutes") to 0-59/5, 1-59/5, 2-59/5, 3-59/5, 4-59/5, to take advantage of every available minute per hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  <p/>
+  Additionally, enabling the search names helps with identifying groups of searches that may be ripe for consolidation. Look for searches named very close to each other that look for similar types of things, like unique error messages, status codes, et al that exist within the same application context in the Splunk environment.
+  <p/>
+  Time frame: Trending over the past 24 hours.
+</html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Frequency of Scheduled Searches</title>
+      <input type="radio" searchWhenChanged="true" token="include_search_name">
+        <label>Include Search Name</label>
+        <choice value="Search_Count Cron">No</choice>
+        <choice value="Search_Count Search_Names Cron">Yes</choice>
+        <default>Search_Count Cron</default>
+      </input>
+      <table>
+        <search>
+          <query>| rest splunk_server=local "/servicesNS/-/-/saved/searches/" search="is_scheduled=1" search="disabled=0"
+| fields title, eai:acl.app, eai:acl.owner, cron_schedule, dispatch.earliest_time, dispatch.latest_time, schedule_window, actions
+| rename title as "Report_Name", cron_schedule as "Cron_Schedule"
+| eval Frequency=if(like(Cron_Schedule,"*/1 %"),"1min",if(like(Cron_Schedule,"* * * * *"),"1min",if(like(Cron_Schedule,"%/5 %"),"5min", if(like(Cron_Schedule,"%/10 %"),"10min",if(like(Cron_Schedule,"*/15 %"),"15min",if(like(Cron_Schedule,"0 %"),"Top of the Hour","other"))))))
+| stats count(Report_Name) AS Search_Count values(Report_Name) AS Search_Names values(Cron_Schedule) AS Cron by Frequency
+| addcoltotals labelfield=Frequency label="Total Searches Scheduled" 
+| sort - Search_Count
+| table Frequency $include_search_name$ </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Heavy Weight Dashboards</h3>
+        <p/>
+          Description: Dashboards which trigger one or more limits associated with the role of the user loading them. These limits can be disk quota, per role search concurrency, or search head wide max search concurrency. Hitting limits results in poor user experience, and can range from the dashboard panels never loading (disk quota exceeded) to long waits for queued searches to execute. The type of limit hit will determine what steps can be taken to alleviate the poor user experience.
+        <p/>
+          Actions to take: There are several options for quick fixes. For the limit type being hit for a specific dashboard is disk quota and users from the same role are the ones that primary hit this limit, then raising the disk quota may be an easy way to improve the user experience for that dashboard. For dashboards that cause per role search concurrency limits to be hit (users in different roles with different thresholds may get hit on the same dashboard), consider raising the search concurrency rate for one or more roles that frequently use the dashboard. If the system wide max concurrency setting is being hit, a more holistic look at the number of searches being executed from dashboards, ad-hoc searches and scheduled searches is in order, which is beyond the scope of this panel.
+        <p/>
+          Longer term actions to take for all types of limits being hit are to investigate improving individual dashboards. Improvement options include: using <a href="https://docs.splunk.com/Documentation/Splunk/7.2.5/Viz/Savedsearches#Post-process_searches_2">base searches</a> for similar results set with post-process searches keying off one or more base searches, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Acceleratedatamodels">Data Model Accelerations</a> or <a href="https://docs.splunk.com/Documentation/Splunk/latest/Report/Acceleratereports">report acceleration</a>, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Usesummaryindexing">summary indexing</a>, or referencing the results from a <a href="hhttps://docs.splunk.com/Documentation/Splunk/7.2.5/Search/Schedulingsearches">scheduling searched</a>. These techniques can be combined to vastly improve performance and efficiency of heavily used dashboards.
+        <p/>
+        Time frame: Trending over the past 24 hours.
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Heavy Weight Dashboards</title>
+      <table>
+        <search>
+          <query>index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
+| rex field=provenance mode=sed "s/UI:Dashboard://g" 
+| chart count over provenance by reason 
+| rename provenance as Dashboard</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Acknowledgements</h3>
+      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings and Rich Galloway.</p> </html>
+    </panel>
+  </row>
+</form>
