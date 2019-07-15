@@ -7,13 +7,14 @@ You'll find various dashboards and whitepapers that I've created for customers h
 ## Dashboards
 
 * [Extended Search Reporting](). This dashboard looks at Search load in Splunk with a different lens than Monitoring Console. Included are 
-** Two takes on a search efficiency metric
-** Searches by frequency vs duration (easily find the search running every 5 mins that looks back 1 week)
-** Users who don't include the four default indexed fields in their search
-** Two takes on search duration, bucketing by time blocks and counts
-** Visualization of when searches are scheduled across the entire SH, per app and per user
-** Searches grouped by cron schedule type, sorted by name (easy to find searches that do almost the same thing by name and are ripe for consolidation)
-** Heavy weight dashboards that cause role search concurrency or disk and server-wide limits to be hit when loading
+
+  * Two takes on a search efficiency metric
+  * Searches by frequency vs duration (easily find the search running every 5 mins that looks back 1 week)
+  * Users who don't include the four default indexed fields in their search
+  * Two takes on search duration, bucketing by time blocks and counts
+  * Visualization of when searches are scheduled across the entire SH, per app and per user
+  * Searches grouped by cron schedule type, sorted by name (easy to find searches that do almost the same thing by name and are ripe for consolidation)
+  * Heavy weight dashboards that cause role search concurrency or disk and server-wide limits to be hit when loading
 
 ## Whitepapers
 
