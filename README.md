@@ -18,11 +18,11 @@ You'll find various dashboards and whitepapers that I've created for customers h
   
 * [Metrics Related to Ingestion Blockage](https://github.com/dpaper-splunk/public/blob/master/dashboards/metrics_related_to_ingestion_blockage.xml). This dashboard looks at data ingestion metrics including forwarder and indexer tiers. Designed to work with Splunk Cloud, but can be easily adapted to on prem. Included are
 
- * Indexer ingestion and replication queue filling indicators including data port listener availability
- * Peer replication traffic
- * Mpool buffer filling
- * Forwarders dropping events due to being unable to forward
- * Hot bucket counts
+  * Indexer ingestion and replication queue filling indicators including data port listener availability
+  * Peer replication traffic
+  * Mpool buffer filling
+  * Forwarders dropping events due to being unable to forward
+  * Hot bucket counts
 
 ## Whitepapers
 
