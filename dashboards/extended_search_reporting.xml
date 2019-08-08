@@ -1,5 +1,5 @@
 <form>
-  <label>Extended Search Reporting, v1.5.1</label>
+  <label>Extended Search Reporting, v1.5.2</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -32,7 +32,7 @@
       </input>
       <table>
         <search>
-          <query>index=_internal sourcetype=scheduler source=*scheduler.log status=success $Exclusions$
+          <query>index=_internal sourcetype=scheduler source=*scheduler.log (status=success OR status=completed) $Exclusions$
 | stats avg(run_time) as average_runtime_in_sec count(savedsearch_name) as weekly_count sum(run_time) as total_runtime_sec by savedsearch_name user app host
 | eval Ran_every_x_Minutes=60/(weekly_count/168)
 | eval average_runtime_in_minutes=average_runtime_in_sec/60
