@@ -1,5 +1,5 @@
 <form>
-  <label>Extended Search Reporting, v1.5.3</label>
+  <label>Extended Search Reporting, v1.5.4</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -65,7 +65,7 @@
   <p/>
   If savedsearch_name is blank, its an adhoc search.
   <p/>
-  Actions to take: Review the values before the first | to include as many specific search terms as possible. Pay attention to searches using wildcards, small numbers, and filtering with NOT – especially for fields. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches">http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches</a> and a deep dive on this topic on <a href="https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf">https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf</a>.
+  Actions to take: Review the values before the first | to include as many specific search terms as possible. Pay attention to searches using wildcards, small numbers, and filtering with NOT - especially for fields. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches">http://docs.splunk.com/Documentation/Splunk/latest/Search/Writebettersearches</a> and a deep dive on this topic on <a href="https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf">https://conf.splunk.com/files/2017/slides/fields-indexed-tokens-and-you.pdf</a>.
   <p/>
   Time frame: Trending over the past 60 minutes.
 </html>
@@ -231,7 +231,7 @@
   <p/>
   Description: The duration panels help visualize where search load is coming from. Left panel is a explicit breakdown of number of searches and duration between beginning and end. Right panel is similar, but buckets the searches into groups.
   <p/>
-  Actions to take: Review how often searches are scheduled to run -- do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports">http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports</a>. For frequently run searches, ensure that they are as fast as possible with each search being as specific as possible before the first pipe, including index sourcetype host or other values whenever possible.
+  Actions to take: Review how often searches are scheduled to run - do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports">http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports</a>. For frequently run searches, ensure that they are as fast as possible with each search being as specific as possible before the first pipe, including index sourcetype host or other values whenever possible.
   <p/>
   Time frame: Trending over the past 60 minutes.
 </html>
@@ -313,7 +313,7 @@
   <p/>
   Description: The distribution of scheduled searches is a way to visualize the scheduled search load for each minute of the last hour from the Splunk scheduler perspective. This view only encompasses scheduled and enabled searches on the local server.
   <p/>
-  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on - do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
   <p/>
   Time frame: Trending over the past 60 minutes by default.
 </html>
@@ -381,7 +381,7 @@
   <p/>
   Description: Same as above, but broken down per app and sorted by highest count of scheduled searches over the observed time period. This view only encompasses scheduled and enabled searches on the local server.
   <p/>
-  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on - do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
   <p/>
   Time frame: Trending over the past 60 minutes by default.
 </html>
@@ -465,7 +465,7 @@
   <p/>
   Description: Same as above, but broken down per user and sorted by highest count of scheduled searches over the observed time period. This view only encompasses scheduled and enabled searches on the local server.
   <p/>
-  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on -- do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  Actions to take: Review how often searches are scheduled to run and which minutes of the clock to run on - do all the searches running frequently need to run at the default 5, 10, 15, et al minute boundaries? Spread searches out to lesser utilized minutes each hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
   <p/>
   Time frame: Trending over the past 60 minutes by default.
 </html>
@@ -549,7 +549,7 @@
   <p/>
   Description: Buckets searches into common frequency of scheduling, every 1, 5, 10, 15, 30 or 60 minutes and all remainders. This assists with identifying causes of skipped searches when the SH hits maximum historical search capacity.
   <p/>
-  Actions to take: Review how often searches are scheduled to run -- do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. For multiple searches that have to run every 5 minutes, spread them out from */5 (or "every 5 minutes") to 0-59/5, 1-59/5, 2-59/5, 3-59/5, 4-59/5, to take advantage of every available minute per hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
+  Actions to take: Review how often searches are scheduled to run - do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. For multiple searches that have to run every 5 minutes, spread them out from */5 (or "every 5 minutes") to 0-59/5, 1-59/5, 2-59/5, 3-59/5, 4-59/5, to take advantage of every available minute per hour. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions">http://docs.splunk.com/Documentation/Splunk/latest/Alert/CronExpressions</a>.
   <p/>
   Additionally, enabling the search names helps with identifying groups of searches that may be ripe for consolidation. Look for searches named very close to each other that look for similar types of things, like unique error messages, status codes, et al that exist within the same application context in the Splunk environment.
   <p/>
