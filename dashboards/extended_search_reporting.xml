@@ -1,5 +1,5 @@
 <form>
-  <label>Extended Search Reporting, v1.5.4</label>
+  <label>Extended Search Reporting, v1.5.5</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -186,7 +186,7 @@
       <html>
   <h3>Use The Fields, Luke</h3>
   <p/>
-  Description: This view identifies which users avail themselves of the 4 fields every event has (index, source, sourcetype, host) in their searches, and if they use them with wildcards. Users who use less than 3 of these in their searches could use some pointers to writing better, more specific searches. Idealy every search will have an index=, source=, sourcetype= and host= defined before the first |.
+  Description: This view identifies which users avail themselves of the 4 fields every event has (index, source, sourcetype, host) in their searches, and if they use them with wildcards. Users who use less than 3 of these in their searches could use some pointers to writing better, more specific searches. Ideally every search will have an index=, source=, sourcetype= and host= defined before the first |.
   <p/>
   Actions to take: Review the values before the first | to include as many specific search terms as possible.  Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Search/Quicktipsforoptimization">http://docs.splunk.com/Documentation/Splunk/latest/Search/Quicktipsforoptimization</a>.
   <p/>
@@ -338,7 +338,7 @@
       </input>
       <chart>
         <search>
-          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_all.earliest$ latest_time=$time_range_all.latest$ 
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_all.earliest$ latest_time=$time_range_all.latest$ timeout=0
           | table title cron_schedule scheduled_times 
           | mvexpand scheduled_times 
           | rename scheduled_times as _time 
@@ -406,7 +406,7 @@
       </input>
       <chart>
         <search>
-          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_app.earliest$ latest_time=$time_range_app.latest$
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_app.earliest$ latest_time=$time_range_app.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.app 
 | mvexpand scheduled_times 
 | rename scheduled_times as _time 
@@ -490,7 +490,7 @@
       </input>
       <chart>
         <search>
-          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_user.earliest$ latest_time=$time_range_user.latest$
+          <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_user.earliest$ latest_time=$time_range_user.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.owner 
 | mvexpand scheduled_times 
 | rename scheduled_times as _time 
@@ -633,7 +633,7 @@
     <panel>
       <html>
         <h3>Acknowledgements</h3>
-      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway and Michael Uschmann.</p> </html>
+      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann and Amir Khamis.</p> </html>
     </panel>
   </row>
 </form>
