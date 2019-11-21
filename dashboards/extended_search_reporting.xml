@@ -1,5 +1,5 @@
 <form>
-  <label>Extended Search Reporting, v1.5.5</label>
+  <label>Extended Search Reporting, v1.5.6</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -412,7 +412,7 @@
 | rename scheduled_times as _time 
 | rename eai:acl.app AS app 
 | eventstats count AS total_events by app 
-| sort - total_events 
+| sort 0 - total_events 
 | streamstats current=f window=1 last(total_events) as prev_eventcount 
 | fillnull value=0 total_events 
 | eval tempRank=if(total_events=prev_eventcount,0,1) 
@@ -496,7 +496,7 @@
 | rename scheduled_times as _time 
 | rename eai:acl.owner AS owner 
 | eventstats count AS total_events by owner 
-| sort - total_events 
+| sort 0 - total_events 
 | streamstats current=f window=1 last(total_events) as prev_eventcount 
 | fillnull value=0 total_events 
 | eval tempRank=if(total_events=prev_eventcount,0,1) 
