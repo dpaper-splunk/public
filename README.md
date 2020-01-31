@@ -15,6 +15,8 @@ You'll find various dashboards and whitepapers that I've created for customers h
   * Visualization of when searches are scheduled across the entire SH, per app and per user
   * Searches grouped by cron schedule type, sorted by name (easy to find searches that do almost the same thing by name and are ripe for consolidation)
   * Heavy weight dashboards that cause role search concurrency or disk and server-wide limits to be hit when loading
+
+Note the method of including a timer for panel loading time and identifying inline SPL by search id so panels are easy to identify in audit logs via savedsearch_name.
   
 * [Metrics Related to Ingestion Blockage](https://github.com/dpaper-splunk/public/blob/master/dashboards/metrics_related_to_ingestion_blockage.xml). This dashboard looks at data ingestion metrics including forwarder and indexer tiers. Designed to work with Splunk Cloud, but can be easily adapted to on prem. Included are
 
