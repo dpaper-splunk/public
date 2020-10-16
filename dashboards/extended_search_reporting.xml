@@ -1,7 +1,17 @@
 <form>
-  <label>Extended Search Reporting, v1.5.6</label>
+  <label>Extended Search Reporting, v1.6</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <html> 
+      The Extended Search Reporting dashboard is here to augment your Splunk management efforts with information and views not available in the Monitoring Console. It is meant to run on a stand alone Search Head or Search Head Cluster. Access to REST and the _* indexes are necessary for this view to render properly. Latest version can be found at <a href="https://github.com/dpaper-splunk/public">https://github.com/dpaper-splunk/public</a>.
+      <p/>
+      Feedback is welcomes via github or directly to David Paper at dpaper@splunk.com or @cerby on Splunk usergroups Slack.
+      
+      </html>
+    </panel>
+  </row>
   <row>
     <panel>
       <html>
