@@ -693,8 +693,13 @@
         <search id="heavy_weight_dashboards">
           <query>index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
 | rex field=provenance mode=sed "s/UI:Dashboard://g" 
-| chart count over provenance by reason 
-| rename provenance as Dashboard</query>
+| rex field=id "(?&lt;user&gt;[^_]+)"
+| stats sparkline AS "Usage Trend", dc(user) AS "Unique Users" by provenance
+| join provenance
+    [search index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
+    | rex field=provenance mode=sed "s/UI:Dashboard://g" 
+    | rex field=id "(?&lt;user&gt;[^_]+)"
+    | chart count over provenance by reason]</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
