@@ -67,6 +67,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$efficiency_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -111,15 +115,23 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="lispyefficiency_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">cell</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution  Duration</h3>
+          <div class="custom-result-value">$lispyefficiency_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -184,6 +196,9 @@
           <earliest>-4h@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="freqvsdur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -194,6 +209,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution  Duration</h3>
+          <div class="custom-result-value">$freqvsdur_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -229,6 +248,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="fieldsluke_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -238,6 +260,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$fieldsluke_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -268,6 +294,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="exactdur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">20</option>
         <option name="dataOverlayMode">none</option>
@@ -287,6 +316,10 @@
 | rename savedsearch_name AS "Saved search name", count as Count&amp;earliest=-60m@m&amp;latest=now</link>
         </drilldown>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$exactdur_duration$</div>
+      </html>
     </panel>
     <panel>
       <title>Duration #2</title>
@@ -313,6 +346,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="bucketeddur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -322,6 +358,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$bucketeddur_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -365,6 +405,9 @@
           <earliest>$time_range_all.earliest$</earliest>
           <latest>$time_range_all.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="syswidesched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -391,6 +434,10 @@
         <option name="charting.legend.placement">right</option>
         <option name="height">400</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$syswidesched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -443,6 +490,9 @@
           <earliest>$time_range_app.earliest$</earliest>
           <latest>$time_range_app.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="appwidesched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -476,6 +526,10 @@
         <option name="trellis.scales.shared">0</option>
         <option name="trellis.size">small</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$appwidesched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -528,6 +582,9 @@
           <earliest>$time_range_user.earliest$</earliest>
           <latest>$time_range_user.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="perusersched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -561,6 +618,10 @@
         <option name="trellis.scales.shared">0</option>
         <option name="trellis.size">medium</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$perusersched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -601,6 +662,9 @@
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="freqofsched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -610,6 +674,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$freqofsched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -640,6 +708,9 @@
           <earliest>-24h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="heavyweight_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
