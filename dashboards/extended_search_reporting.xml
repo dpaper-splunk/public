@@ -103,12 +103,11 @@
         -->
       </input>
       <table>
-        <search>
         <search id="events_scanned_vs_returned">
           <query>index=_audit search_id TERM(action=search) (info=granted OR info=completed) 
 | stats first(_time) as _time first(total_run_time) as total_run_time first(event_count) as event_count first(scan_count) as
    scan_count first(user) as user first(savedsearch_name) as savedsearch_name first(search) as search by search_id 
-| eval lispy_efficiency = event_count / scan_count 
+| eval lispy_efficiency = round((event_count / scan_count),5)
 | where lispy_efficiency &lt; 0.5 AND total_run_time &gt; 5 AND scan_count &gt; 100
 | sort - total_run_time 
 | table total_run_time event_count scan_count lispy_efficiency user $include_search_string$ search_id</query>
