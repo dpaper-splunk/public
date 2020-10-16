@@ -1,7 +1,17 @@
 <form>
-  <label>Extended Search Reporting, v1.5.6</label>
+  <label>Extended Search Reporting, v1.6</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <html> 
+      The Extended Search Reporting dashboard is here to augment your Splunk management efforts with information and views not available in the Monitoring Console. It is meant to run on a stand alone Search Head or Search Head Cluster. Access to REST and the _* indexes are necessary for this view to render properly. Latest version can be found at <a href="https://github.com/dpaper-splunk/public">https://github.com/dpaper-splunk/public</a>.
+      <p/>
+      Feedback is welcomes via github or directly to David Paper at dpaper@splunk.com or @cerby on Splunk usergroups Slack.
+      
+      </html>
+    </panel>
+  </row>
   <row>
     <panel>
       <html>
@@ -32,18 +42,21 @@
         <delimiter> AND </delimiter>
       </input>
       <table>
-        <search>
+        <search id="efficiency">
           <query>index=_internal sourcetype=scheduler source=*scheduler.log (status=success OR status=completed) $Exclusions$
 | stats avg(run_time) as average_runtime_in_sec count(savedsearch_name) as weekly_count sum(run_time) as total_runtime_sec by savedsearch_name user app host
 | eval Ran_every_x_Minutes=60/(weekly_count/168)
 | eval average_runtime_in_minutes=average_runtime_in_sec/60
 | eval efficiency=((60/(weekly_count/168))/(average_runtime_in_sec/60))
-| sort efficiency
+| sort efficiency |eval average_runtime_in_sec=round(average_runtime_in_sec,2), Ran_every_x_Minutes=round(Ran_every_x_Minutes,2), efficiency=round(efficiency,2), average_runtime_in_minutes=round(average_runtime_in_minutes,2)
 | rename savedsearch_name AS "Saved Search Name", user AS "User", efficiency AS "Efficiency", app AS "App", host AS "Host", average_runtime_in_sec AS "Avg Runtime Secs", weekly_count AS "Weekly Count", total_runtime_sec AS "Total Runtime Secs", Ran_every_x_Minutes AS "Ran Every X Mins", average_runtime_in_minutes AS "Avg Runtime In Mins"
 | table "Saved Search Name","User", "Efficiency", "App", "Host", "Avg Runtime Secs", "Weekly Count", "Total Runtime Secs", "Ran Every X Mins", "Avg Runtime In Mins"</query>
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="efficiency_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -54,6 +67,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$efficiency_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -86,26 +103,34 @@
         -->
       </input>
       <table>
-        <search>
+        <search id="events_scanned_vs_returned">
           <query>index=_audit search_id TERM(action=search) (info=granted OR info=completed) 
 | stats first(_time) as _time first(total_run_time) as total_run_time first(event_count) as event_count first(scan_count) as
    scan_count first(user) as user first(savedsearch_name) as savedsearch_name first(search) as search by search_id 
-| eval lispy_efficiency = event_count / scan_count 
+| eval lispy_efficiency = round((event_count / scan_count),5)
 | where lispy_efficiency &lt; 0.5 AND total_run_time &gt; 5 AND scan_count &gt; 100
 | sort - total_run_time 
 | table total_run_time event_count scan_count lispy_efficiency user $include_search_string$ search_id</query>
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="lispyefficiency_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">cell</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution  Duration</h3>
+          <div class="custom-result-value">$lispyefficiency_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -136,7 +161,7 @@
         <default>20</default>
       </input>
       <table>
-        <search>
+        <search id="frequency_vs_duration_ratio">
           <query>index=_audit sourcetype=audittrail source=audittrail savedsearch_name!="" TERM(action=search) ( TERM(info=completed) OR ( TERM(info=granted) search_et=* "search='search")) NOT "search_id='rsa_*" 
 | eval timesearched = round((search_lt-search_et),0)
 | fields savedsearch_name, timesearched, user
@@ -169,6 +194,9 @@
           <earliest>-4h@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="freqvsdur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -179,6 +207,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution  Duration</h3>
+          <div class="custom-result-value">$freqvsdur_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -198,7 +230,7 @@
     <panel>
       <title>Use The Fields, Luke</title>
       <table>
-        <search>
+        <search id="use_the_fields_luke">
           <query>user=* index=_audit action=search sourcetype=audittrail search_id=* user!="splunk-system-user" info=granted  
 | eval search=replace(search,"(search\s)(.*)","\2") 
 | eval savedsearch_name=replace(savedsearch_name,"(search\d+)","dashboard") 
@@ -213,6 +245,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="fieldsluke_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -222,6 +257,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$fieldsluke_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -241,7 +280,7 @@
     <panel>
       <title>Duration #1</title>
       <table>
-        <search>
+        <search id="exact_duration">
           <query>index=_audit info=completed sourcetype=audittrail source=audittrail action=search
 | eval search_span=round(search_lt-search_et)
 | eval search_span=tostring(abs(search_span), "duration")
@@ -251,6 +290,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="exactdur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">20</option>
         <option name="dataOverlayMode">none</option>
@@ -270,11 +312,15 @@
 | rename savedsearch_name AS "Saved search name", count as Count&amp;earliest=-60m@m&amp;latest=now</link>
         </drilldown>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$exactdur_duration$</div>
+      </html>
     </panel>
     <panel>
       <title>Duration #2</title>
       <table>
-        <search>
+        <search id="bucketed_duration">
           <query>index=_audit sourcetype=audittrail source=audittrail TERM(action=search) ( TERM(info=completed)  OR ( TERM(info=granted) apiStartTime "search='search")) NOT "search_id='rsa_*"
 | eval u=case( searchmatch("user=splunk-system-user OR user=nobody OR search_id=*scheduler_*"), "Scheduler", searchmatch(("search_id='1*")), "AdHocUser", 1=1, "AdHocSaved")
 | eval search_id=md5(search_id), search_et=if(search_et="N/A", 0, search_et), search_lt=if(search_lt="N/A", exec_time, search_lt), et_diff=case(exec_time&gt;search_et, (exec_time-search_et)/60, 1=1, (search_lt-search_et)/60), searchStrLen=len(search)
@@ -295,6 +341,9 @@
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="bucketeddur_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -304,6 +353,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$bucketeddur_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -337,7 +390,7 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
+        <search id="system_wide_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_all.earliest$ latest_time=$time_range_all.latest$ timeout=0
           | table title cron_schedule scheduled_times 
           | mvexpand scheduled_times 
@@ -346,6 +399,9 @@
           <earliest>$time_range_all.earliest$</earliest>
           <latest>$time_range_all.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="syswidesched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -372,6 +428,10 @@
         <option name="charting.legend.placement">right</option>
         <option name="height">400</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$syswidesched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -405,7 +465,7 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
+        <search id="per_app_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_app.earliest$ latest_time=$time_range_app.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.app 
 | mvexpand scheduled_times 
@@ -423,6 +483,9 @@
           <earliest>$time_range_app.earliest$</earliest>
           <latest>$time_range_app.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="appwidesched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -456,6 +519,10 @@
         <option name="trellis.scales.shared">0</option>
         <option name="trellis.size">small</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$appwidesched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -489,7 +556,7 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
+        <search id="per_user_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_user.earliest$ latest_time=$time_range_user.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.owner 
 | mvexpand scheduled_times 
@@ -507,6 +574,9 @@
           <earliest>$time_range_user.earliest$</earliest>
           <latest>$time_range_user.latest$</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="perusersched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -540,6 +610,10 @@
         <option name="trellis.scales.shared">0</option>
         <option name="trellis.size">medium</option>
       </chart>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$perusersched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -567,7 +641,7 @@
         <default>Search_Count Cron</default>
       </input>
       <table>
-        <search>
+        <search id="frequency_of_scheduled">
           <query>| rest splunk_server=local "/servicesNS/-/-/saved/searches/" search="is_scheduled=1" search="disabled=0"
 | fields title, eai:acl.app, eai:acl.owner, cron_schedule, dispatch.earliest_time, dispatch.latest_time, schedule_window, actions
 | rename title as "Report_Name", cron_schedule as "Cron_Schedule"
@@ -579,6 +653,9 @@
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="freqofsched_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
@@ -588,6 +665,10 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+          <h3>Panel Execution Duration</h3>
+          <div class="custom-result-value">$freqofsched_duration$</div>
+      </html>
     </panel>
   </row>
   <row>
@@ -609,14 +690,22 @@
     <panel>
       <title>Heavy Weight Dashboards</title>
       <table>
-        <search>
+        <search id="heavy_weight_dashboards">
           <query>index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
 | rex field=provenance mode=sed "s/UI:Dashboard://g" 
-| chart count over provenance by reason 
-| rename provenance as Dashboard</query>
+| rex field=id "(?&lt;user&gt;[^_]+)"
+| stats sparkline AS "Usage Trend", dc(user) AS "Unique Users" by provenance
+| join provenance
+    [search index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
+    | rex field=provenance mode=sed "s/UI:Dashboard://g" 
+    | rex field=id "(?&lt;user&gt;[^_]+)"
+    | chart count over provenance by reason]</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="heavyweight_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -627,13 +716,79 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+        <h3>Panel Execution Duration</h3>
+        <div class="custom-result-value">$heavyweight_duration$</div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Automatically Refreshing Dashboards</h3>
+        <p/>
+          Description: Dashboards may be configured to auto-refresh either at the whole dashboard level or per panel, with varying frequencies definable per panel. This functionality is very useful for unattended views on a wall display or to have open in a browser during normal usage. Each time the dashboard is loaded, it generates some amount of search load on Splunk. This search load can become significant if there are a lot of panels refreshing at once or the refresh frequency is low (less than 5 minutes). 
+        <p/>
+        Refresh types can beSearch (per panel refresh) or RealTime.
+        <p/>
+          Actions to take: There are several ways to alleviate the load these dashboards place on the system. 
+          <ul>
+          <li>The simplest one is to lengthen the refresh rate to at least 5 minutes. Longer if possible and business requirements allow it. </li>
+          <li>Change the refresh from being dashboard wide to be per-panel, so not all panels will try to reload at the same time. </li>
+          <li>Update each panel to include <refreshtype>delay</refreshtype> as this will assist in staggering the time a panel kicks off its refresh. The timer will begin when the panel finishes loading, not when it begins loading. <a href="https://docs.splunk.com/Documentation/Splunk/latest/Viz/PanelreferenceforSimplifiedXML">https://docs.splunk.com/Documentation/Splunk/latest/Viz/PanelreferenceforSimplifiedXML</a> has all of these configs documented.  </li>
+          <li>Ensure base searches and post-processing is used wherever possible within the dashboard. <a href="https://docs.splunk.com/Documentation/Splunk/Latest/Viz/Savedsearches#Post-process_searches_2">https://docs.splunk.com/Documentation/Splunk/Latest/Viz/Savedsearches#Post-process_searches_2</a> has several examples of this method. </li>
+          <li>Convert dashboard from using inline or saved searches to using loadjob and loading the results of scheduled searches. This will be particularly effective for reducing search load when there are multiple displays. <a href="https://docs.splunk.com/Documentation/Splunk/Latest/SearchReference/Loadjob">https://docs.splunk.com/Documentation/Splunk/Latest/SearchReference/Loadjob</a> is a good reference, and it is suggested to use <b>ignore_running=false</b> so that in-progress search results are loaded as soon as they are ready. </li>
+        </ul>
+        <p/>
+        Time frame: N/A; REST call.
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Automatically Refreshing Dashboards</title>
+      <table>
+        <search id="refresh_dashboards">
+          <query>| rest splunk_server=local servicesNS/-/-/data/ui/views timeout=0 
+| regex eai:data="(&lt;earliest&gt;rt-\d+[^\&lt;]+|&lt;refresh&gt;\d+|refresh=\"[^\"]+)" 
+| rex field="eai:data" "&lt;refresh&gt;(?&lt;refresh_time&gt;\d+[^\&lt;]+)&lt;\/refresh&gt;" max_match=30 
+| rex field="eai:data" "refresh=\"(?&lt;refresh_time&gt;[^\"]+)\"" max_match=30 
+| rex field="eai:data" "&lt;earliest&gt;rt-(?&lt;refresh_time&gt;\d+[^\&lt;]+)" max_match=30 
+| stats values(refresh_type) AS refresh_type by eai:appName, eai:acl.app, eai:acl.sharing, label, title, refresh_time 
+| rex field=refresh_time "^\d+(?P&lt;refresh_unit&gt;.*)" 
+| eval refresh_type=case(isnotnull(refresh_unit) AND match('eai:data',"&lt;earliest&gt;rt-\d+[^\&lt;]+"),"RealTime",isnotnull(refresh_unit),"Search",1=1,"Form") 
+| addinfo 
+| eval refresh_time_seconds=if(isnotnull(refresh_unit),relative_time(info_search_time, "-" . refresh_time),refresh_time) 
+| eval refresh_time_seconds=if(isnotnull(refresh_unit),floor((refresh_time_seconds-info_search_time)*-1),refresh_time) 
+| fields - info_*, refresh_unit, eai:acl.app 
+| table label title eai:appName eai:acl.sharing refresh_time refresh_time_seconds refresh_type 
+| rename label AS "Dashboard label" title AS "Dashboard title" eai:appName AS "App name" eai:acl.sharing AS "Permissions" refresh_time AS "Refresh time" refresh_time_seconds AS "Refresh time in seconds" refresh_type AS "Refresh type"</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="dashboard_refreshs">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+      <html>
+        <h3>Panel Execution Duration</h3>
+        <div class="custom-result-value">$dashboard_refreshs$</div>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
       <html>
         <h3>Acknowledgements</h3>
-      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann and Amir Khamis.</p> </html>
+      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann, Amir Khamis, Gareth Anderson and Darrel Huntington.</p> </html>
     </panel>
   </row>
 </form>
