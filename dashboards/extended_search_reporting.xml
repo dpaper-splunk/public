@@ -42,19 +42,21 @@
         <delimiter> AND </delimiter>
       </input>
       <table>
-        <search>
         <search id="efficiency">
           <query>index=_internal sourcetype=scheduler source=*scheduler.log (status=success OR status=completed) $Exclusions$
 | stats avg(run_time) as average_runtime_in_sec count(savedsearch_name) as weekly_count sum(run_time) as total_runtime_sec by savedsearch_name user app host
 | eval Ran_every_x_Minutes=60/(weekly_count/168)
 | eval average_runtime_in_minutes=average_runtime_in_sec/60
 | eval efficiency=((60/(weekly_count/168))/(average_runtime_in_sec/60))
-| sort efficiency
+| sort efficiency |eval average_runtime_in_sec=round(average_runtime_in_sec,2), Ran_every_x_Minutes=round(Ran_every_x_Minutes,2), efficiency=round(efficiency,2), average_runtime_in_minutes=round(average_runtime_in_minutes,2)
 | rename savedsearch_name AS "Saved Search Name", user AS "User", efficiency AS "Efficiency", app AS "App", host AS "Host", average_runtime_in_sec AS "Avg Runtime Secs", weekly_count AS "Weekly Count", total_runtime_sec AS "Total Runtime Secs", Ran_every_x_Minutes AS "Ran Every X Mins", average_runtime_in_minutes AS "Avg Runtime In Mins"
 | table "Saved Search Name","User", "Efficiency", "App", "Host", "Avg Runtime Secs", "Weekly Count", "Total Runtime Secs", "Ran Every X Mins", "Avg Runtime In Mins"</query>
           <earliest>-60m@m</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="efficiency_duration">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
