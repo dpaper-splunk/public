@@ -716,13 +716,79 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
+      <html>
+        <h3>Panel Execution Duration</h3>
+        <div class="custom-result-value">$heavyweight_duration$</div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h3>Automatically Refreshing Dashboards</h3>
+        <p/>
+          Description: Dashboards may be configured to auto-refresh either at the whole dashboard level or per panel, with varying frequencies definable per panel. This functionality is very useful for unattended views on a wall display or to have open in a browser during normal usage. Each time the dashboard is loaded, it generates some amount of search load on Splunk. This search load can become significant if there are a lot of panels refreshing at once or the refresh frequency is low (less than 5 minutes). 
+        <p/>
+        Refresh types can beSearch (per panel refresh) or RealTime.
+        <p/>
+          Actions to take: There are several ways to alleviate the load these dashboards place on the system. 
+          <ul>
+          <li>The simplest one is to lengthen the refresh rate to at least 5 minutes. Longer if possible and business requirements allow it. </li>
+          <li>Change the refresh from being dashboard wide to be per-panel, so not all panels will try to reload at the same time. </li>
+          <li>Update each panel to include <refreshtype>delay</refreshtype> as this will assist in staggering the time a panel kicks off its refresh. The timer will begin when the panel finishes loading, not when it begins loading. <a href="https://docs.splunk.com/Documentation/Splunk/latest/Viz/PanelreferenceforSimplifiedXML">https://docs.splunk.com/Documentation/Splunk/latest/Viz/PanelreferenceforSimplifiedXML</a> has all of these configs documented.  </li>
+          <li>Ensure base searches and post-processing is used wherever possible within the dashboard. <a href="https://docs.splunk.com/Documentation/Splunk/Latest/Viz/Savedsearches#Post-process_searches_2">https://docs.splunk.com/Documentation/Splunk/Latest/Viz/Savedsearches#Post-process_searches_2</a> has several examples of this method. </li>
+          <li>Convert dashboard from using inline or saved searches to using loadjob and loading the results of scheduled searches. This will be particularly effective for reducing search load when there are multiple displays. <a href="https://docs.splunk.com/Documentation/Splunk/Latest/SearchReference/Loadjob">https://docs.splunk.com/Documentation/Splunk/Latest/SearchReference/Loadjob</a> is a good reference, and it is suggested to use <b>ignore_running=false</b> so that in-progress search results are loaded as soon as they are ready. </li>
+        </ul>
+        <p/>
+        Time frame: N/A; REST call.
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Automatically Refreshing Dashboards</title>
+      <table>
+        <search id="refresh_dashboards">
+          <query>| rest splunk_server=local servicesNS/-/-/data/ui/views timeout=0 
+| regex eai:data="(&lt;earliest&gt;rt-\d+[^\&lt;]+|&lt;refresh&gt;\d+|refresh=\"[^\"]+)" 
+| rex field="eai:data" "&lt;refresh&gt;(?&lt;refresh_time&gt;\d+[^\&lt;]+)&lt;\/refresh&gt;" max_match=30 
+| rex field="eai:data" "refresh=\"(?&lt;refresh_time&gt;[^\"]+)\"" max_match=30 
+| rex field="eai:data" "&lt;earliest&gt;rt-(?&lt;refresh_time&gt;\d+[^\&lt;]+)" max_match=30 
+| stats values(refresh_type) AS refresh_type by eai:appName, eai:acl.app, eai:acl.sharing, label, title, refresh_time 
+| rex field=refresh_time "^\d+(?P&lt;refresh_unit&gt;.*)" 
+| eval refresh_type=case(isnotnull(refresh_unit) AND match('eai:data',"&lt;earliest&gt;rt-\d+[^\&lt;]+"),"RealTime",isnotnull(refresh_unit),"Search",1=1,"Form") 
+| addinfo 
+| eval refresh_time_seconds=if(isnotnull(refresh_unit),relative_time(info_search_time, "-" . refresh_time),refresh_time) 
+| eval refresh_time_seconds=if(isnotnull(refresh_unit),floor((refresh_time_seconds-info_search_time)*-1),refresh_time) 
+| fields - info_*, refresh_unit, eai:acl.app 
+| table label title eai:appName eai:acl.sharing refresh_time refresh_time_seconds refresh_type 
+| rename label AS "Dashboard label" title AS "Dashboard title" eai:appName AS "App name" eai:acl.sharing AS "Permissions" refresh_time AS "Refresh time" refresh_time_seconds AS "Refresh time in seconds" refresh_type AS "Refresh type"</query>
+          <earliest>-30m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <progress>
+            <eval token="dashboard_refreshs">tostring(round(tonumber($job.runDuration$),2),"duration")</eval>
+          </progress>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+      <html>
+        <h3>Panel Execution Duration</h3>
+        <div class="custom-result-value">$dashboard_refreshs$</div>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
       <html>
         <h3>Acknowledgements</h3>
-      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann and Amir Khamis.</p> </html>
+      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann, Amir Khamis, Gareth Anderson and Darrel Huntington.</p> </html>
     </panel>
   </row>
 </form>
