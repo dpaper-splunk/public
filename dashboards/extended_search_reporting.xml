@@ -161,7 +161,6 @@
         <default>20</default>
       </input>
       <table>
-        <search>
         <search id="frequency_vs_duration_ratio">
           <query>index=_audit sourcetype=audittrail source=audittrail savedsearch_name!="" TERM(action=search) ( TERM(info=completed) OR ( TERM(info=granted) search_et=* "search='search")) NOT "search_id='rsa_*" 
 | eval timesearched = round((search_lt-search_et),0)
@@ -231,7 +230,6 @@
     <panel>
       <title>Use The Fields, Luke</title>
       <table>
-        <search>
         <search id="use_the_fields_luke">
           <query>user=* index=_audit action=search sourcetype=audittrail search_id=* user!="splunk-system-user" info=granted  
 | eval search=replace(search,"(search\s)(.*)","\2") 
@@ -282,7 +280,6 @@
     <panel>
       <title>Duration #1</title>
       <table>
-        <search>
         <search id="exact_duration">
           <query>index=_audit info=completed sourcetype=audittrail source=audittrail action=search
 | eval search_span=round(search_lt-search_et)
@@ -323,7 +320,6 @@
     <panel>
       <title>Duration #2</title>
       <table>
-        <search>
         <search id="bucketed_duration">
           <query>index=_audit sourcetype=audittrail source=audittrail TERM(action=search) ( TERM(info=completed)  OR ( TERM(info=granted) apiStartTime "search='search")) NOT "search_id='rsa_*"
 | eval u=case( searchmatch("user=splunk-system-user OR user=nobody OR search_id=*scheduler_*"), "Scheduler", searchmatch(("search_id='1*")), "AdHocUser", 1=1, "AdHocSaved")
@@ -394,7 +390,6 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
         <search id="system_wide_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_all.earliest$ latest_time=$time_range_all.latest$ timeout=0
           | table title cron_schedule scheduled_times 
@@ -470,7 +465,6 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
         <search id="per_app_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_app.earliest$ latest_time=$time_range_app.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.app 
@@ -562,7 +556,6 @@
         <default>1m</default>
       </input>
       <chart>
-        <search>
         <search id="per_user_scheduling">
           <query>| rest /servicesNS/-/-/saved/searches splunk_server=local search="is_scheduled=1" search="disabled=0" earliest_time=$time_range_user.earliest$ latest_time=$time_range_user.latest$ timeout=0
 | table title cron_schedule scheduled_times eai:acl.owner 
@@ -648,7 +641,6 @@
         <default>Search_Count Cron</default>
       </input>
       <table>
-        <search>
         <search id="frequency_of_scheduled">
           <query>| rest splunk_server=local "/servicesNS/-/-/saved/searches/" search="is_scheduled=1" search="disabled=0"
 | fields title, eai:acl.app, eai:acl.owner, cron_schedule, dispatch.earliest_time, dispatch.latest_time, schedule_window, actions
@@ -698,7 +690,6 @@
     <panel>
       <title>Heavy Weight Dashboards</title>
       <table>
-        <search>
         <search id="heavy_weight_dashboards">
           <query>index=_internal sourcetype=splunkd reason="The maximum*" provenance=UI:Dashboard:* source="*splunkd.log" 
 | rex field=provenance mode=sed "s/UI:Dashboard://g" 
