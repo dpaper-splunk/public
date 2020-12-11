@@ -1,5 +1,6 @@
 <form>
-  <label>Extended Search Reporting, v1.6</label>
+  <label>Extended Search Reporting, v1.7</label>
+  <description>https://github.com/dpaper-splunk/public</description>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -13,6 +14,127 @@
     </panel>
   </row>
   <row>
+    <panel id="panel_layout">
+      <input id="input_link_split_by" type="link" token="tableselector">
+        <label></label>
+        <choice value="Search Efficiency">Search Efficiency</choice>
+        <choice value="Events Scanned vs Returned">Events Scanned vs Returned</choice>
+        <choice value="Frequency and Duration Comparison">Frequency and Duration Comparison</choice>
+        <choice value="Use The Fields, Luke">Use The Fields, Luke</choice>
+        <choice value="Search Duration">Search Duration</choice>
+        <choice value="Search Scheduling Distribution">Search Scheduling Distribution</choice>
+        <choice value="Dashboards">Dashboards</choice>
+        <default>Search Efficiency</default>
+        <change>
+          <condition value="Search Efficiency">
+            <set token="searchefficiency">*</set>
+            <unset token="scannedvreturned"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="searchscheduling"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Events Scanned vs Returned">
+            <set token="scannedvreturned">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="searchscheduling"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Frequency and Duration Comparison">
+            <set token="frequencyduration">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="scannedvreturned"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="searchscheduling"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Use The Fields, Luke">
+            <set token="usethefields">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="scannedvreturned"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="searchscheduling"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Search Duration">
+            <set token="searchduration">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="scannedvreturned"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchscheduling"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Search Scheduling Distribution">
+            <set token="searchscheduling">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="scannedvreturned"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="dashboards"></unset>
+          </condition>
+          <condition value="Dashboards">
+            <set token="dashboards">*</set>
+            <unset token="searchefficiency"></unset>
+            <unset token="scannedvreturned"></unset>
+            <unset token="frequencyduration"></unset>
+            <unset token="usethefields"></unset>
+            <unset token="searchduration"></unset>
+            <unset token="searchscheduling"></unset>
+          </condition>
+        </change>
+      </input>
+      <html>
+         <style>
+           /* This Layout Panel Bottom Padding removed to merge Link Input with horizontal line */
+           #panel_layout .fieldset{
+               padding: 10px 12px 0px 12px !important;          
+           }
+           /* Increase width of Link input to have options in Single Line */
+           #input_link_split_by.input-link{
+               width: 1440px !important;
+           }
+           /* Change from flex to -webkit-box for side by side layout */
+           #input_radio_split_by.input-link div[data-component="splunk-core:/splunkjs/mvc/components/LinkList"]{
+               display: -webkit-box !important;
+           }
+           /* Create Button Border to make them appear as Tabs */
+           #input_link_split_by.input-link button{
+             width: 240 !important;
+             border-top-color: rgb(0, 0, 0);
+             border-top-style: solid;
+             border-top-width: 1px;
+             border-right-color: rgb(0, 0, 0);
+             border-right-style: solid;
+             border-right-width: 1px;
+             border-left-color: rgb(0, 0, 0);
+             border-left-style: solid;
+             border-left-width: 1px;
+               border-top-left-radius: 10px;
+             border-top-right-radius: 10px;
+           }
+           /* Hide link input bottom message section to merge with Horizontal line */
+           .dashboard-panel #input_link_split_by label,
+           #input_link_split_by .splunk-choice-input-message{
+             display: none !important;
+           }
+           /* Remove padding from horizontal line */
+           #panel_layout .panel-body.html{
+               padding: 0px !important;
+           }
+         </style>
+         <hr style="height:1px;border-width:0;color: black;background-color: black;margin: 0px;"/>
+       </html>
+    </panel>
+  </row>
+  <row depends="$searchefficiency$">
     <panel>
       <html>
   <h3>Search Efficiency Ratings</h3>
@@ -27,7 +149,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchefficiency$">
     <panel>
       <title>Efficiency Search</title>
       <input type="checkbox" token="Exclusions" searchWhenChanged="true">
@@ -73,7 +195,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$scannedvreturned$">
     <panel>
       <html>
   <h3>Events Scanned vs Returned</h3>
@@ -88,7 +210,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$scannedvreturned$">
     <panel>
       <title>Events Scanned vs Returned</title>
       <input type="radio" searchWhenChanged="true" token="include_search_string">
@@ -133,7 +255,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$frequencyduration$">
     <panel>
       <html>
   <h3>Frequency and Duration Comparison</h3>
@@ -148,7 +270,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$frequencyduration$">
     <panel>
       <title>Frequency and Duration Comparison</title>
       <input type="dropdown" token="ratio" searchWhenChanged="true">
@@ -213,7 +335,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$usethefields$">
     <panel>
       <html>
   <h3>Use The Fields, Luke</h3>
@@ -226,7 +348,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$usethefields$">
     <panel>
       <title>Use The Fields, Luke</title>
       <table>
@@ -263,7 +385,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchduration$">
     <panel>
       <html>
   <h3>Search Duration</h3>
@@ -276,7 +398,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchduration$">
     <panel>
       <title>Duration #1</title>
       <table>
@@ -359,7 +481,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <html>
   <h3>Search Scheduling Distribution</h3>
@@ -372,7 +494,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <title>Search Scheduling Distribution</title>
       <input type="time" token="time_range_all" searchWhenChanged="true">
@@ -434,7 +556,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <html>
   <h3>Search Scheduling Distribution by App</h3>
@@ -447,7 +569,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <title>Search Scheduling Distribution By App</title>
       <input type="time" token="time_range_app" searchWhenChanged="true">
@@ -525,7 +647,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <html>
   <h3>Search Scheduling Distribution by User</h3>
@@ -538,7 +660,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <title>Search Scheduling Distribution By User</title>
       <input type="time" token="time_range_user" searchWhenChanged="true">
@@ -616,7 +738,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <html>
   <h3>Scheduled Search Frequency</h3>
@@ -631,7 +753,7 @@
 </html>
     </panel>
   </row>
-  <row>
+  <row depends="$searchscheduling$">
     <panel>
       <title>Frequency of Scheduled Searches</title>
       <input type="radio" searchWhenChanged="true" token="include_search_name">
@@ -671,7 +793,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$dashboards$">
     <panel>
       <html>
         <h3>Heavy Weight Dashboards</h3>
@@ -686,7 +808,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$dashboards$">
     <panel>
       <title>Heavy Weight Dashboards</title>
       <table>
@@ -722,7 +844,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$dashboards$">
     <panel>
       <html>
         <h3>Automatically Refreshing Dashboards</h3>
@@ -744,7 +866,7 @@
       </html>
     </panel>
   </row>
-  <row>
+  <row depends="$dashboards$">
     <panel>
       <title>Automatically Refreshing Dashboards</title>
       <table>
