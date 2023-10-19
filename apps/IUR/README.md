@@ -27,22 +27,22 @@ IUR works by using the data in search.log that now exists to identify expanded l
 
 In the example below, this is what that expansion looks like for a search using wildcards in `index=`
 
-`10-06-2023 10:14:16.931 INFO  SearchParser [18820582 RunDispatch] - PARSING: search index=_* | stats count
+`10-06-2023 10:14:16.931 INFO  SearchParser [18820582 RunDispatch] - PARSING: search index=_* | stats count`
 ...
-10-06-2023 10:14:17.340 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _internal, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =
-10-06-2023 10:14:17.325 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _audit, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =
-10-06-2023 10:14:17.346 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _introspection, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =
-10-06-2023 10:14:17.333 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _configtracker, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =
-10-06-2023 10:14:17.353 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _telemetry, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =
-10-06-2023 10:14:17.363 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _thefishbucket, et = 1694008756.000000000, lt = 1694009656.000000000, index_et = 
-`
+`10-06-2023 10:14:17.340 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _internal, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+`10-06-2023 10:14:17.325 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _audit, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+`10-06-2023 10:14:17.346 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _introspection, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+`10-06-2023 10:14:17.333 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _configtracker, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+`10-06-2023 10:14:17.353 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _telemetry, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+`10-06-2023 10:14:17.363 INFO IndexScopedSearch [18820613 localCollectorThread] - IndexScopedSearch is called for index = _thefishbucket, et = 1694008756.000000000, lt = 1694009656.000000000, index_et =`
+
 IUR works for searches that don't include an `index=` at all.
 
-`10-06-2023 10:34:58.548 INFO  SearchParser [10623692 searchOrchestrator] - PARSING: search sourcetype=metrics | stats count
-....
-10-06-2023 10:34:58.825 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = _thefishbucket, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE
-10-06-2023 10:34:58.834 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = avsname, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE
-10-06-2023 10:34:58.846 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = main, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE
-`
+`10-06-2023 10:34:58.548 INFO  SearchParser [10623692 searchOrchestrator] - PARSING: search sourcetype=metrics | stats count`
+…
+`10-06-2023 10:34:58.825 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = _thefishbucket, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE`
+`10-06-2023 10:34:58.834 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = avsname, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE`
+`10-06-2023 10:34:58.846 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = main, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE`
+
 By looking for the value after `index = ` in the search.log entries above, we can generate the analytics Splunk administrators have been asking for.
 
