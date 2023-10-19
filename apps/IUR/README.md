@@ -21,6 +21,12 @@ The data IUR uses first appeared in Splunk Enterprise 9.0 in the Search Head’s
 
 - 9.0
 
+## Deployment Supported
+
+- Splunk Enterprise (on-premise)
+
+IUR running in Splunk Cloud is not supported as of October 2023.
+
 ## How does it work?
 
 ### Ingestion
