@@ -1,27 +1,27 @@
-## Indexer Usage Reporting 
+# Indexer Usage Reporting 
 
-# What is it?
+## What is it?
 
 The IUR app stands for "Index Usage & Reporting." IUR is intended to assist Splunk administrators in deciding which data to continue ingesting into Splunk by way of examining if an index is ever searched, and if so, how often.
 
 IUR provides information about index search usage that is not available in Monitoring Console.
 
-# Where is IUR getting this data from? 
+## Where is IUR getting this data from? 
 
 The data IUR uses first appeared in Splunk Enterprise 9.0 in the Search Head’s internal logging for a search. Search.log was enhanced in 9.0 to include information about all indexes that are in scope for a specific search.
  
-# Installation info
+## Installation info
 
 - Installed on the Search Head
 - Contains configs to capture data relevant to indexes being searched
 - Search Head should be forwarding data for its internal logging, including now search.log, to the indexing tier
 - A new sourcetype is created and data is sent to _internal, so it does not affect metered ingest licensing
 
-# Versions Supported
+## Versions Supported
 
 - 9.0
 
-# How does it work?
+## How does it work?
 
 IUR works by using the data in search.log that now exists to identify expanded lists of indexes being searched when a user includes a wildcard in the `index=` in their SPL. Examples include `index=*`, `index=prod*`, `index=*_logs` or `index=_*`.
 
