@@ -23,7 +23,12 @@ The data IUR uses first appeared in Splunk Enterprise 9.0 in the Search Head’s
 
 ## How does it work?
 
-IUR works by using the data in search.log that now exists to identify expanded lists of indexes being searched when a user includes a wildcard in the `index=` in their SPL. Examples include `index=*`, `index=prod*`, `index=*_logs` or `index=_*`.
+### Ingestion
+
+IUR depends on the `search.log` for each search run on a Search Head. The `search.log` data is found inside each `$SPLUNK_HOME/var/run/splunk/dispatch/` directory and is present for every search executed on the search head. Every search gets its own directory entry in dispatch. These directories are reaped out when the Time To Live for that search result expires. IUR includes an `inputs.conf` that ingests each searches `search.log` as it’s created.
+
+### The Data
+IUR works by using the data in `search.log` that now exists to identify expanded lists of indexes being searched when a user includes a wildcard in the `index=` in their SPL. Examples include `index=*`, `index=prod*`, `index=*_logs` or `index=_*`. 
 
 In the example below, this is what that expansion looks like for a search using wildcards in `index=`
 
