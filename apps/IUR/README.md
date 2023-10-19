@@ -43,7 +43,7 @@ In the example below, this is what that expansion looks like for a search using 
 
 IUR works for searches that don't include an `index=` at all.
 
-    10-06-2023 10:34:58.548 INFO  SearchParser [10623692 searchOrchestrator] - PARSING: search sourcetype=metrics | stats count`
+    10-06-2023 10:34:58.548 INFO  SearchParser [10623692 searchOrchestrator] - PARSING: search sourcetype=metrics | stats count
     …
     10-06-2023 10:34:58.825 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = _thefishbucket, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE
     10-06-2023 10:34:58.834 INFO  IndexScopedSearch [10623692 searchOrchestrator] -  IndexScopedSearch is called for index = avsname, et = 1697378400.000000000, lt = 1697466898.000000000, index_et = -9223372036854775808.000000000, index_lt = 9223372036854775807.999999000, noRead = FALSE
