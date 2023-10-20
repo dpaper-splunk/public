@@ -57,3 +57,12 @@ IUR works for searches that don't include an `index=` at all.
 
 By looking for the value after `index = ` in the search.log entries above, we can generate the analytics Splunk administrators have been asking for.
 
+## Notes
+
+Unless the Splunk environment is already ingesting `search.log` files from dispatch on the Search Head, this app will take time to produce reliable data. On install and restart, all existing dispatch directories are read, and the initial set of indexes being searched within the TTLs of recently completed searches show up. However, the data really needs to be collected for a longer period of time to get a proper view of what is being searched and what isn’t. 
+
+Suggested best practice for this is to collect a minimum of 3 months of `search.log` data, preferrably 6 months, to account for potential long windows of time between uses of data for certain indexes. Examples of why so long include 
+
+- Teams that use Splunk only when there are production issues which will happen with indeterministic frequencies depending on the environment
+- Teams that use the data only when there is a new code install to validate things are working and installs happen only every 6 weeks or once a quarter
+- Data for compliance and audit reporting that is used infrequently, but needs to be there
