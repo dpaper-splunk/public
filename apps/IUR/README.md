@@ -1,8 +1,8 @@
-# Indexer Usage Reporting 
+# Index Usage Reporting 
 
 ## What is it?
 
-The IUR app stands for "Index Usage & Reporting." IUR is intended to assist Splunk administrators in deciding which data to continue ingesting into Splunk by way of examining if an index is ever searched, and if so, how often.
+The IUR (“Index Usage Reporting”) app is intended to assist Splunk administrators in deciding which data to continue ingesting into Splunk by way of examining if an index is ever searched, and if so, how often.
 
 IUR provides information about index search usage that is not available in Monitoring Console.
 
