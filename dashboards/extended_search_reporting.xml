@@ -4,11 +4,10 @@
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
-      <html> 
-      The Extended Search Reporting dashboard is here to augment your Splunk management efforts with information and views not available in the Monitoring Console. It is meant to run on a stand alone Search Head or Search Head Cluster. Access to REST and the _* indexes are necessary for this view to render properly. Latest version can be found at <a href="https://github.com/dpaper-splunk/public">https://github.com/dpaper-splunk/public</a>.
+      <html>
+      The Extended Search Reporting dashboard is here to augment your Splunk management efforts with information and views not available in the Monitoring Console. It is meant to run on a standalone Search Head or Search Head Cluster. Access to REST and the _* indexes are necessary for this view to render properly. Latest version can be found at <a href="https://github.com/dpaper-splunk/public">https://github.com/dpaper-splunk/public</a>.
       <p/>
-      Feedback is welcomes via github or directly to David Paper at dpaper@splunk.com or @cerby on Splunk usergroups Slack.
-      
+      Feedback is welcome via github or directly to David Paper at dpaper@splunk.com or @cerby on Splunk usergroups Slack.
       </html>
     </panel>
   </row>
@@ -17,7 +16,7 @@
       <html>
   <h3>Search Efficiency Ratings</h3>
   <p/>
-  Description: The efficiency panel is a ranking of searches based on how efficient the searches are. The value represents a function of how often the search runs and how long it takes to run. A search running often and takes a long time will have a low efficiency value. Searches that run in less time raise efficiency value.
+  Description: The efficiency panel is a ranking of searches based on how efficient the searches are. The value represents a function of how often the search runs and how long it takes to run. A search running often, and that takes a long time, will have a low efficiency value. Searches that run in less time raise the efficiency value.
   <p/>
   Higher efficiency values, relative to each other, are better. Anything below 10 should be considered for improvement in SPL, time range, or change in frequency of scheduling.
   <p/>
@@ -78,7 +77,7 @@
       <html>
   <h3>Events Scanned vs Returned</h3>
   <p/>
-  Description: This view provides insight into which searches have a very low count of results returned versus count of results scanned. This is expressed as a  ratio called lispy_efficiency. The closer to 1.0 the lispy_efficiency ratio is, the better the search is. A low ratio indicates Splunk is reading a large number of events but ultimately returning very few to the user.
+  Description: This view provides insight into which searches have a very low count of results returned versus count of results read from disk. This is expressed as a ratio called lispy_efficiency. The closer to 1.0 the lispy_efficiency ratio is, the better the search is. A low ratio indicates Splunk is reading a large number of events but ultimately returning very few to the user.
   <p/>
   If savedsearch_name is blank, its an adhoc search.
   <p/>
@@ -96,11 +95,6 @@
         <choice value="savedsearch_name _time">No</choice>
         <choice value="savedsearch_name search _time">Yes</choice>
         <default>savedsearch_name _time</default>
-        <!--
-        <change>
-          <set token="include_search_string">$label$</set>
-        </change>
-        -->
       </input>
       <table>
         <search id="events_scanned_vs_returned">
@@ -231,15 +225,15 @@
       <title>Use The Fields, Luke</title>
       <table>
         <search id="use_the_fields_luke">
-          <query>user=* index=_audit action=search sourcetype=audittrail search_id=* user!="splunk-system-user" info=granted  
+          <query>user=* index=_audit action=search sourcetype=audittrail search_id=* user!="splunk-system-user" info=granted 
 | eval search=replace(search,"(search\s)(.*)","\2") 
 | eval savedsearch_name=replace(savedsearch_name,"(search\d+)","dashboard") 
 | eval savedsearch_name=if(savedsearch_name="","adhoc",savedsearch_name) 
-| stats count by user, savedsearch_name, search | rex field=search "host=(?&lt;host&gt;\S+)"  
-| rex field=search "sourcetype=(?&lt;sourcetype&gt;\S+)"  
-| rex field=search "source=(?&lt;source&gt;\S+)"  
+| stats count by user, savedsearch_name, search | rex field=search "host=(?&lt;host&gt;\S+)" 
+| rex field=search "sourcetype=(?&lt;sourcetype&gt;\S+)" 
+| rex field=search "source=(?&lt;source&gt;\S+)" 
 | rex field=search "index=(?&lt;index&gt;[^\s\=]+)" 
-| eval index=trim(index,"\""), host=trim(host,"\"\\'"), sourcetype=trim(sourcetype,"\"") ,source=trim(source,"\"")  
+| eval index=trim(index,"\""), host=trim(host,"\"\\'"), sourcetype=trim(sourcetype,"\"") ,source=trim(source,"\"") 
 | stats values(index) as searched_indexes, values(sourcetype) as searched_sourcetypes, values(source) as searched_sources, values(host) as searched_hosts by user
 </query>
           <earliest>-60m@m</earliest>
@@ -676,9 +670,14 @@
       <html>
         <h3>Heavy Weight Dashboards</h3>
         <p/>
-          Description: Dashboards which trigger one or more limits associated with the role of the user loading them. These limits can be disk quota, per role search concurrency, or search head wide max search concurrency. Hitting limits results in poor user experience, and can range from the dashboard panels never loading (disk quota exceeded) to long waits for queued searches to execute. The type of limit hit will determine what steps can be taken to alleviate the poor user experience.
+          Description: Dashboards which trigger one or more limits associated with the role of the user loading them. These limits can be disk quota, per-role search concurrency, or max search concurrency per search head. Hitting limits results in poor user experience, and can range from the dashboard panels never loading (disk quota exceeded) to long waits for queued searches to execute. The type of limit hit will determine what steps can be taken to alleviate the poor user experience.
         <p/>
-          Actions to take: There are several options for quick fixes. For the limit type being hit for a specific dashboard is disk quota and users from the same role are the ones that primary hit this limit, then raising the disk quota may be an easy way to improve the user experience for that dashboard. For dashboards that cause per role search concurrency limits to be hit (users in different roles with different thresholds may get hit on the same dashboard), consider raising the search concurrency rate for one or more roles that frequently use the dashboard. If the system wide max concurrency setting is being hit, a more holistic look at the number of searches being executed from dashboards, ad-hoc searches and scheduled searches is in order, which is beyond the scope of this panel.
+          Problem descriptions and actions to take:
+          <ul>
+            <li>Disk quota: Users in the same role are collectively using too much disk space. Raising the disk quota may be an easy way to improve the user experience for that dashboard.</li>
+            <li>Per-role search concurrency: Users in the same role are trying to run too many searches at once. Users in different roles with different thresholds may have trouble on the same dashboard. Consider raising the search concurrency rate for one or more roles that frequently use the dashboard.</li>
+            <li>System-wide concurrency: All users, combined, are trying to run too many searches at once. A more holistic look at the number of searches being executed from dashboards, ad-hoc searches, and scheduled searches is in order, which is beyond the scope of this panel. Engage your account team to determine the best resource to help.</li>
+          </ul>
         <p/>
           Longer term actions to take for all types of limits being hit are to investigate improving individual dashboards. Improvement options include: using <a href="https://docs.splunk.com/Documentation/Splunk/7.2.5/Viz/Savedsearches#Post-process_searches_2">base searches</a> for similar results set with post-process searches keying off one or more base searches, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Acceleratedatamodels">Data Model Accelerations</a> or <a href="https://docs.splunk.com/Documentation/Splunk/latest/Report/Acceleratereports">report acceleration</a>, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Usesummaryindexing">summary indexing</a>, or referencing the results from a <a href="hhttps://docs.splunk.com/Documentation/Splunk/7.2.5/Search/Schedulingsearches">scheduling searched</a>. These techniques can be combined to vastly improve performance and efficiency of heavily used dashboards.
         <p/>
@@ -729,7 +728,7 @@
         <p/>
           Description: Dashboards may be configured to auto-refresh either at the whole dashboard level or per panel, with varying frequencies definable per panel. This functionality is very useful for unattended views on a wall display or to have open in a browser during normal usage. Each time the dashboard is loaded, it generates some amount of search load on Splunk. This search load can become significant if there are a lot of panels refreshing at once or the refresh frequency is low (less than 5 minutes). 
         <p/>
-        Refresh types can beSearch (per panel refresh) or RealTime.
+        Refresh types can be Search (per panel refresh) or RealTime.
         <p/>
           Actions to take: There are several ways to alleviate the load these dashboards place on the system. 
           <ul>
