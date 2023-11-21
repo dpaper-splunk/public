@@ -1,5 +1,5 @@
-<form>
-  <label>Extended Search Reporting, v1.6</label>
+<form version=1.1>
+  <label>Extended Search Reporting, v1.7</label>
   <!-- Author: David Paper, dpaper@splunk.com -->
   <fieldset submitButton="false"></fieldset>
   <row>
