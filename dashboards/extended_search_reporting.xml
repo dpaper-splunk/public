@@ -128,7 +128,7 @@
         <option name="wrap">true</option>
       </table>
       <html>
-          <h3>Panel Execution  Duration</h3>
+          <h3>Panel Execution Duration</h3>
           <div class="custom-result-value">$lispyefficiency_duration$</div>
       </html>
     </panel>
@@ -136,9 +136,9 @@
   <row>
     <panel>
       <html>
-  <h3>Frequency and Duration Comparison</h3>
+  <h3>Frequency and Span Comparison</h3>
   <p/>
-  Description: Often a search is scheduled to run frequently with a very long duration. While it makes sense for a search run every 5 minutes to look back 10 minutes (-11m@m to -1m@m, delayed a minute to allow straggler events to be indexed and caught by the search), it probably doesn't make sense for a search running every 5 minutes to look back 4 or 24 hours. Likewise, a search that run once an hour probably doesn't need to look back at the last 24 hours or 7 days. These searches end up being resource hogs due to the frequency they run. Any search with a ratio higher than 20:1 (default) of frequency to duration is shown. Use the dropdown to alter the ratio to display.
+  Description: Often a search is scheduled to run frequently with a very long span between earliest and latest. While it makes sense for a search run every 5 minutes to look back 10 minutes (-11m@m to -1m@m, delayed a minute to allow straggler events to be indexed and caught by the search), it probably doesn't make sense for a search running every 5 minutes to look back 4 or 24 hours. Likewise, a search that run once an hour probably doesn't need to look back at the last 24 hours or 7 days. These searches end up being resource hogs due to the frequency they run. Any search with a ratio higher than 20:1 (default) of frequency to duration is shown. Use the dropdown to alter the ratio to display.
   <p/>
   There is no right answer for what an acceptable ratio is - some searches may need a longer look back than others. The closer to 1:1 the better. A search that runs every minute shouldn't need to look back more than 2 or 3 minutes. Note that there are some edge case cron schedules that don't get parsed correctly.
   <p/>
@@ -150,7 +150,7 @@
   </row>
   <row>
     <panel>
-      <title>Frequency and Duration Comparison</title>
+      <title>Frequency and Span Comparison</title>
       <input type="dropdown" token="ratio" searchWhenChanged="true">
         <label>Select ratio threshold</label>
         <choice value="3">3:1</choice>
@@ -161,7 +161,7 @@
         <default>20</default>
       </input>
       <table>
-        <search id="frequency_vs_duration_ratio">
+        <search id="frequency_vs_span_ratio">
           <query>index=_audit sourcetype=audittrail source=audittrail savedsearch_name!="" TERM(action=search) ( TERM(info=completed) OR ( TERM(info=granted) search_et=* "search='search")) NOT "search_id='rsa_*" 
 | eval timesearched = round((search_lt-search_et),0)
 | fields savedsearch_name, timesearched, user
@@ -266,9 +266,9 @@
   <row>
     <panel>
       <html>
-  <h3>Search Duration</h3>
+  <h3>Search Span</h3>
   <p/>
-  Description: The duration panels help visualize where search load is coming from. Left panel is a explicit breakdown of number of searches and duration between beginning and end. Right panel is similar, but buckets the searches into groups.
+  Description: The span panels help visualize where search load is coming from. Left panel is a explicit breakdown of number of searches and span between beginning and end. Right panel is similar, but buckets the searches into groups.
   <p/>
   Actions to take: Review how often searches are scheduled to run - do all the searches running every 1, 5, 10 or 15 minutes need to run as frequently? Consider enabling the scheduler window for searches so that Splunk can adjust their execution timing to spread the load out. Assistance can be found on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports">http://docs.splunk.com/Documentation/Splunk/latest/Report/Schedulereports</a>. For frequently run searches, ensure that they are as fast as possible with each search being as specific as possible before the first pipe, including index sourcetype host or other values whenever possible.
   <p/>
@@ -278,9 +278,9 @@
   </row>
   <row>
     <panel>
-      <title>Duration #1</title>
+      <title>Span #1</title>
       <table>
-        <search id="exact_duration">
+        <search id="exact_span">
           <query>index=_audit info=completed sourcetype=audittrail source=audittrail action=search
 | eval search_span=round(search_lt-search_et)
 | eval search_span=tostring(abs(search_span), "duration")
@@ -318,9 +318,9 @@
       </html>
     </panel>
     <panel>
-      <title>Duration #2</title>
+      <title>Span #2</title>
       <table>
-        <search id="bucketed_duration">
+        <search id="bucketed_span">
           <query>index=_audit sourcetype=audittrail source=audittrail TERM(action=search) ( TERM(info=completed)  OR ( TERM(info=granted) apiStartTime "search='search")) NOT "search_id='rsa_*"
 | eval u=case( searchmatch("user=splunk-system-user OR user=nobody OR search_id=*scheduler_*"), "Scheduler", searchmatch(("search_id='1*")), "AdHocUser", 1=1, "AdHocSaved")
 | eval search_id=md5(search_id), search_et=if(search_et="N/A", 0, search_et), search_lt=if(search_lt="N/A", exec_time, search_lt), et_diff=case(exec_time&gt;search_et, (exec_time-search_et)/60, 1=1, (search_lt-search_et)/60), searchStrLen=len(search)
@@ -680,7 +680,7 @@
         <p/>
           Actions to take: There are several options for quick fixes. For the limit type being hit for a specific dashboard is disk quota and users from the same role are the ones that primary hit this limit, then raising the disk quota may be an easy way to improve the user experience for that dashboard. For dashboards that cause per role search concurrency limits to be hit (users in different roles with different thresholds may get hit on the same dashboard), consider raising the search concurrency rate for one or more roles that frequently use the dashboard. If the system wide max concurrency setting is being hit, a more holistic look at the number of searches being executed from dashboards, ad-hoc searches and scheduled searches is in order, which is beyond the scope of this panel.
         <p/>
-          Longer term actions to take for all types of limits being hit are to investigate improving individual dashboards. Improvement options include: using <a href="https://docs.splunk.com/Documentation/Splunk/7.2.5/Viz/Savedsearches#Post-process_searches_2">base searches</a> for similar results set with post-process searches keying off one or more base searches, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Acceleratedatamodels">Data Model Accelerations</a> or <a href="https://docs.splunk.com/Documentation/Splunk/latest/Report/Acceleratereports">report acceleration</a>, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Usesummaryindexing">summary indexing</a>, or referencing the results from a <a href="hhttps://docs.splunk.com/Documentation/Splunk/7.2.5/Search/Schedulingsearches">scheduling searched</a>. These techniques can be combined to vastly improve performance and efficiency of heavily used dashboards.
+          Longer term actions to take for all types of limits being hit are to investigate improving individual dashboards. Improvement options include: using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Viz/Savedsearches#Post-process_searches_2">base searches</a> for similar results set with post-process searches keying off one or more base searches, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Acceleratedatamodels">Data Model Accelerations</a> or <a href="https://docs.splunk.com/Documentation/Splunk/latest/Report/Acceleratereports">report acceleration</a>, using <a href="https://docs.splunk.com/Documentation/Splunk/latest/Knowledge/Usesummaryindexing">summary indexing</a>, or referencing the results from a <a href="https://docs.splunk.com/Documentation/Splunk/latest/Search/Schedulingsearches">scheduling searched</a>. These techniques can be combined to vastly improve performance and efficiency of heavily used dashboards.
         <p/>
         Time frame: Trending over the past 24 hours.
       </html>
@@ -788,7 +788,7 @@
     <panel>
       <html>
         <h3>Acknowledgements</h3>
-      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann, Amir Khamis, Gareth Anderson and Darrel Huntington.</p> </html>
+      <p>This view has been made a whole lot better as I stood on the shoulders of giants who assisted with great feedback and improvements. Thank you Anand Ladda, Joe Gedeon, Martin Mueller, Gream Park, Dawn Taylor, Sanford Owings, Rich Galloway, Michael Uschmann, Amir Khamis, Gareth Anderson, Darrel Huntington, Estela Baca, and Nate Plamondon.</p> </html>
     </panel>
   </row>
 </form>
