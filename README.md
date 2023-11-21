@@ -2,7 +2,7 @@
 
 Welcome! 
 
-You'll find various dashboards and whitepapers that I've created for customers here. Feedback is always appreciated.
+You'll find various dashboards, whitepapers and apps that I've created for customers here. Feedback is always appreciated.
 
 ## Dashboards
 
@@ -34,3 +34,6 @@ Note the method of including a timer for panel loading time and identifying inli
 
 * [Splunk Scheduled Search Management](https://github.com/dpaper-splunk/public/blob/master/whitepapers/Splunk%20Scheduled%20Search%20Management.pdf). If you have a busy Splunk environment, then you will want to know how to manage your scheduled searches. To do so requires understanding how Splunk prioritizes and schedules searches, what happens when things don't work the way they are expected to, and what to do about them. This paper introduces some new visuals for managing scheduled search scheduling and provides solutions for better utilizing the capacity of the deployment.
 
+## Apps
+
+* [Inder Usage Reporting](https://github.com/dpaper-splunk/public/tree/master/apps/IUR). This app for enabled Splunk administrators to determine which indexes are searches and which ones aren't, beyond what is available in the auditing logs for Splunk. Use this app to raise the signal to noise ratio of valuable data in your Splunk Enterprise environment.
