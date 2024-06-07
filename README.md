@@ -36,4 +36,4 @@ Note the method of including a timer for panel loading time and identifying inli
 
 ## Apps
 
-* [Inder Usage Reporting](https://github.com/dpaper-splunk/public/tree/master/apps/IUR). This app for enabled Splunk administrators to determine which indexes are searches and which ones aren't, beyond what is available in the auditing logs for Splunk. Use this app to raise the signal to noise ratio of valuable data in your Splunk Enterprise environment.
+* [Index Usage Reporting](https://github.com/dpaper-splunk/public/tree/master/apps/IUR). This app for enabled Splunk administrators to determine which indexes are searches and which ones aren't, beyond what is available in the auditing logs for Splunk. Use this app to raise the signal to noise ratio of valuable data in your Splunk Enterprise environment.
